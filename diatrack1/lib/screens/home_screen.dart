@@ -1,36 +1,79 @@
-// --- lib/screens/home_screen.dart (Corrected Imports and Types) ---
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../providers/auth_provider.dart';
-import '../providers/metrics_provider.dart';
-import '../providers/reminders_provider.dart';
-// Corrected relative paths assuming home_screen.dart is in lib/screens/
-import 'add_metric_screen.dart'; // Corrected import
-import 'metrics_history_screen.dart'; // Corrected import
-import 'add_reminder_screen.dart'; // Corrected import
-import 'reminders_screen.dart'; // Corrected import
-// **** Added Missing Model Imports ****
-import '../models/health_metric.dart';
-import '../models/reminder.dart';
-// **** Added Missing Widget Imports ****
-import '../widgets/metric_card.dart';
-import '../widgets/reminder_card.dart';
+import 'package:intl/intl.dart'; // For date formatting
+import '../services/supabase_service.dart';
+import 'add_metrics_screen.dart';
+import 'login_screen.dart'; // For logout
 
-class HomeScreen extends StatelessWidget {
-  static const routeName = '/home';
+class HomeScreen extends StatefulWidget {
+  final Map<String, dynamic> patientData; // Pass patient data from login
 
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key, required this.patientData});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final SupabaseService _supabaseService = SupabaseService();
+  late Future<List<Map<String, dynamic>>> _metricsFuture;
+  late String _patientId;
+
+  @override
+  void initState() {
+    super.initState();
+    _patientId = widget.patientData['patient_id'] as String;
+    _loadMetrics();
+  }
+
+  void _loadMetrics() {
+    setState(() {
+      _metricsFuture = _supabaseService.getHealthMetrics(_patientId);
+    });
+  }
+
+  void _logout() {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
+      (Route<dynamic> route) => false, // Remove all previous routes
+    );
+  }
+
+  // Helper to format date/time nicely
+  String _formatDateTime(String? isoString) {
+    if (isoString == null) return 'N/A';
+    try {
+      final dateTime = DateTime.parse(
+        isoString,
+      ).toUtc().subtract(Duration(hours: 8));
+      return DateFormat('MMM d, yyyy - hh:mm a').format(dateTime);
+    } catch (e) {
+      return 'Invalid Date';
+    }
+  }
+
+  // Function to handle delete photo
+  void _deletePhoto(String photoUrl) {
+    // Implement delete photo logic
+    setState(() {
+      // You would call the service to delete the photo from your storage here
+      print('Deleting photo: $photoUrl');
+    });
+  }
+
+  // Function to handle edit photo
+  void _editPhoto(String photoUrl) {
+    // Implement edit photo logic
+    setState(() {
+      // You would navigate to an image edit screen or upload a new image here
+      print('Editing photo: $photoUrl');
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
-    final patientName = authProvider.patientProfile?.firstName ?? 'User';
-
-    // Watch providers to rebuild if data changes
-    final metricsProvider = context.watch<MetricsProvider>();
-    final remindersProvider = context.watch<RemindersProvider>();
-    final latestMetrics = metricsProvider.metrics;
-    final latestReminders = remindersProvider.reminders;
+    final String patientName =
+        "${widget.patientData['first_name'] ?? ''} ${widget.patientData['last_name'] ?? ''}";
 
     return Scaffold(
       appBar: AppBar(
@@ -39,181 +82,182 @@ class HomeScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Logout',
-            onPressed: () async {
-              await Provider.of<AuthProvider>(context, listen: false).signOut();
-            },
+            onPressed: _logout,
           ),
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: () async {
-          await Future.wait([
-            // Use listen: false when calling methods inside callbacks/onRefresh
-            Provider.of<MetricsProvider>(context, listen: false).fetchMetrics(),
-            Provider.of<RemindersProvider>(
-              context,
-              listen: false,
-            ).fetchReminders(),
-          ]);
-        },
-        child: ListView(
-          padding: const EdgeInsets.all(16.0),
-          children: [
-            _buildSectionTitle(context, 'Quick Actions'),
-            const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildActionButton(
-                  context,
-                  icon: Icons.add_chart,
-                  label: 'Add Metric',
-                  // Use the imported screen class correctly
-                  onPressed:
-                      () => Navigator.of(
-                        context,
-                      ).pushNamed(AddMetricScreen.routeName),
+        onRefresh: () async => _loadMetrics(),
+        child: FutureBuilder<List<Map<String, dynamic>>>(
+          future: _metricsFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (snapshot.hasError) {
+              return Center(
+                child: Text('Error loading metrics: ${snapshot.error}'),
+              );
+            }
+            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return const Center(
+                child: Text(
+                  'No health metrics recorded yet.\nTap the + button to add your first entry!',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16, color: Colors.grey),
                 ),
-                _buildActionButton(
-                  context,
-                  icon: Icons.alarm_add,
-                  label: 'Add Reminder',
-                  onPressed:
-                      () => Navigator.of(
-                        context,
-                      ).pushNamed(AddReminderScreen.routeName),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
+              );
+            }
 
-            _buildSectionTitle(
-              context,
-              'Recent Health Metrics',
-              action: TextButton(
-                child: const Text('View All'),
-                onPressed:
-                    () => Navigator.of(
-                      context,
-                    ).pushNamed(MetricsHistoryScreen.routeName),
-              ),
-            ),
-            const SizedBox(height: 10),
-            // Pass the provider itself for loading state check
-            _buildMetricsSummary(context, metricsProvider),
-            const SizedBox(height: 24),
+            final metrics = snapshot.data!;
 
-            _buildSectionTitle(
-              context,
-              'Your Reminders',
-              action: TextButton(
-                child: const Text('Manage'),
-                onPressed:
-                    () => Navigator.of(
-                      context,
-                    ).pushNamed(RemindersScreen.routeName),
-              ),
-            ),
-            const SizedBox(height: 10),
-            // Pass the provider itself for loading state check
-            _buildRemindersSummary(context, remindersProvider),
-          ],
+            return ListView.builder(
+              padding: const EdgeInsets.all(8.0),
+              itemCount: metrics.length,
+              itemBuilder: (context, index) {
+                final metric = metrics[index];
+                return Card(
+                  margin: const EdgeInsets.symmetric(vertical: 8.0),
+                  elevation: 2.0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.all(16.0),
+                    title: Text(
+                      'Log Entry - ${_formatDateTime(metric['submission_date'] as String?)}',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (metric['blood_glucose'] != null)
+                            Text(
+                              'Blood Glucose: ${metric['blood_glucose']} mg/dL',
+                            ),
+                          if (metric['bp_systolic'] != null &&
+                              metric['bp_diastolic'] != null)
+                            Text(
+                              'Blood Pressure: ${metric['bp_systolic']} / ${metric['bp_diastolic']} mmHg',
+                            ),
+                          if (metric['pulse_rate'] != null)
+                            Text('Pulse Rate: ${metric['pulse_rate']} bpm'),
+                          if (metric['notes'] != null &&
+                              (metric['notes'] as String).isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 4.0),
+                              child: Text('Notes: ${metric['notes']}'),
+                            ),
+                          // Display actual photos with options to delete or edit
+                          if (metric['wound_photo_url'] != null)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Image.network(
+                                    metric['wound_photo_url']!,
+                                    height: 100,
+                                    width: 100,
+                                    fit: BoxFit.cover,
+                                  ),
+                                  Row(
+                                    children: [
+                                      IconButton(
+                                        icon: Icon(
+                                          Icons.edit,
+                                          size: 20,
+                                          color: Colors.blue,
+                                        ),
+                                        onPressed:
+                                            () => _editPhoto(
+                                              metric['wound_photo_url']!,
+                                            ),
+                                      ),
+                                      IconButton(
+                                        icon: Icon(
+                                          Icons.delete,
+                                          size: 20,
+                                          color: Colors.red,
+                                        ),
+                                        onPressed:
+                                            () => _deletePhoto(
+                                              metric['wound_photo_url']!,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          if (metric['food_photo_url'] != null)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Image.network(
+                                    metric['food_photo_url']!,
+                                    height: 100,
+                                    width: 100,
+                                    fit: BoxFit.cover,
+                                  ),
+                                  Row(
+                                    children: [
+                                      IconButton(
+                                        icon: Icon(
+                                          Icons.edit,
+                                          size: 20,
+                                          color: Colors.blue,
+                                        ),
+                                        onPressed:
+                                            () => _editPhoto(
+                                              metric['food_photo_url']!,
+                                            ),
+                                      ),
+                                      IconButton(
+                                        icon: Icon(
+                                          Icons.delete,
+                                          size: 20,
+                                          color: Colors.red,
+                                        ),
+                                        onPressed:
+                                            () => _deletePhoto(
+                                              metric['food_photo_url']!,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            );
+          },
         ),
       ),
-    );
-  }
-
-  Widget _buildSectionTitle(
-    BuildContext context,
-    String title, {
-    Widget? action,
-  }) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          title,
-          style: Theme.of(
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          final result = await Navigator.push(
             context,
-          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-        ),
-        if (action != null) action,
-      ],
-    );
-  }
-
-  Widget _buildActionButton(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-    required VoidCallback onPressed,
-  }) {
-    return ElevatedButton.icon(
-      icon: Icon(icon),
-      label: Text(label),
-      onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        textStyle: const TextStyle(fontSize: 14),
+            MaterialPageRoute(
+              builder: (context) => AddMetricsScreen(patientId: _patientId),
+            ),
+          );
+          if (result == true) {
+            _loadMetrics();
+          }
+        },
+        tooltip: 'Add New Metric Log',
+        child: const Icon(Icons.add),
       ),
-    );
-  }
-
-  // Corrected: Takes MetricsProvider to check loading state and get metrics
-  Widget _buildMetricsSummary(
-    BuildContext context,
-    MetricsProvider metricsProvider,
-  ) {
-    final metrics = metricsProvider.metrics; // Get metrics list
-
-    if (metricsProvider.isLoading && metrics.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (metricsProvider.error != null && metrics.isEmpty) {
-      return Center(child: Text('Error: ${metricsProvider.error}'));
-    }
-    if (metrics.isEmpty) {
-      return const Center(child: Text('No recent metrics recorded.'));
-    }
-    // Show the latest 1-3 metrics
-    final displayMetrics = metrics.take(3).toList();
-    // Explicitly type the list for the Column children
-    return Column(
-      children:
-          displayMetrics
-              .map<Widget>(
-                (metric) => MetricCard(metric: metric),
-              ) // Specify <Widget> type argument
-              .toList(),
-    );
-  }
-
-  // Corrected: Takes RemindersProvider
-  Widget _buildRemindersSummary(
-    BuildContext context,
-    RemindersProvider remindersProvider,
-  ) {
-    final reminders = remindersProvider.reminders; // Get reminders list
-
-    if (remindersProvider.isLoading && reminders.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (remindersProvider.error != null && reminders.isEmpty) {
-      return Center(child: Text('Error: ${remindersProvider.error}'));
-    }
-    if (reminders.isEmpty) {
-      return const Center(child: Text('You have no reminders set.'));
-    }
-    // Show the first few reminders
-    final displayReminders = reminders.take(3).toList();
-    // Explicitly type the list for the Column children
-    return Column(
-      children:
-          displayReminders
-              .map<Widget>(
-                (reminder) => ReminderCard(reminder: reminder),
-              ) // Specify <Widget> type argument
-              .toList(),
     );
   }
 }

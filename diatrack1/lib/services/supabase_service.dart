@@ -1,200 +1,213 @@
-// --- lib/services/supabase_service.dart ---
+import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../models/patient.dart';
-import '../models/health_metric.dart';
-import '../models/reminder.dart';
-import '../config/supabase_config.dart'; // Import config
+import 'package:image_picker/image_picker.dart';
+
+// Get a reference to the Supabase client
+final supabase = Supabase.instance.client;
 
 class SupabaseService {
-  final SupabaseClient _client;
+  final ImagePicker _picker = ImagePicker();
 
-  // Private constructor
-  SupabaseService._(this._client);
+  // --- Authentication (Manual - INSECURE) ---
 
-  // Static instance variable
-  static SupabaseService? _instance;
-
-  // Static method to get the instance
-  static Future<SupabaseService> getInstance() async {
-    if (_instance == null) {
-      // Initialize Supabase if it hasn't been initialized yet
-      // This check might be redundant if initialization is guaranteed in main.dart
-      if (Supabase.instance.client == null) {
-        await Supabase.initialize(
-          url: SUPABASE_URL,
-          anonKey: SUPABASE_ANON_KEY,
-        );
-      }
-      _instance = SupabaseService._(Supabase.instance.client);
-    }
-    return _instance!;
-  }
-
-  // Expose the Supabase client if needed elsewhere (e.g., for auth state changes)
-  SupabaseClient get client => _client;
-
-  // --- Authentication ---
-
-  Future<AuthResponse> signUp(String email, String password) async {
-    return await _client.auth.signUp(email: email, password: password);
-  }
-
-  Future<AuthResponse> signIn(String email, String password) async {
-    return await _client.auth.signInWithPassword(
-      email: email,
-      password: password,
-    );
-  }
-
-  Future<void> signOut() async {
-    await _client.auth.signOut();
-  }
-
-  User? getCurrentUser() {
-    return _client.auth.currentUser;
-  }
-
-  Stream<AuthState> get authStateChanges => _client.auth.onAuthStateChange;
-
-  // --- Patient ---
-
-  // Fetch patient data based on the logged-in user's ID
-  Future<Patient?> getPatientProfile() async {
-    final user = getCurrentUser();
-    if (user == null) return null;
-
+  /// Attempts to sign up a new patient.
+  /// WARNING: Stores password in plain text. Highly insecure.
+  Future<Map<String, dynamic>?> signUpPatient({
+    required String firstName,
+    required String lastName,
+    required String email,
+    required String password,
+    required String? preferredDoctorId, // Make sure this ID exists in 'doctors'
+    DateTime? dateOfBirth,
+    String? contactInfo,
+  }) async {
     try {
       final response =
-          await _client
+          await supabase
+              .from('patients')
+              .insert({
+                'first_name': firstName,
+                'last_name': lastName,
+                'email': email.trim().toLowerCase(),
+                'password':
+                    password, // Storing plain text password - VERY BAD PRACTICE
+                'preferred_doctor_id': preferredDoctorId,
+                'date_of_birth': dateOfBirth?.toIso8601String(),
+                'contact_info': contactInfo,
+              })
+              .select() // Select the newly created record
+              .single(); // Expect only one record
+
+      print('Sign up successful: ${response}');
+      return response; // Return patient data
+    } on PostgrestException catch (error) {
+      print('Supabase Sign Up Error: ${error.message}');
+      // Handle specific errors like unique constraint violation (email exists)
+      if (error.code == '23505') {
+        // Unique violation code
+        throw Exception('Email already exists.');
+      }
+      throw Exception('Sign up failed: ${error.message}');
+    } catch (e) {
+      print('General Sign Up Error: $e');
+      throw Exception('An unexpected error occurred during sign up.');
+    }
+  }
+
+  /// Attempts to log in a patient by checking email and plain text password.
+  /// WARNING: Compares plain text passwords. Highly insecure.
+  Future<Map<String, dynamic>?> loginPatient({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      final response =
+          await supabase
               .from('patients')
               .select()
-              .eq('user_id', user.id)
-              .single(); // Expecting only one patient record per user
+              .eq('email', email.trim().toLowerCase())
+              .eq(
+                'password',
+                password,
+              ) // Comparing plain text password - VERY BAD PRACTICE
+              .single(); // Expect exactly one match
 
-      return Patient.fromJson(response);
+      print('Login successful for: ${response['email']}');
+      return response; // Return patient data
+    } on PostgrestException catch (error) {
+      // Handle cases where no user is found or multiple users (shouldn't happen with unique email)
+      if (error.code == 'PGRST116') {
+        // PGRST116: JSON object requested, multiple (or no) rows returned
+        print('Login Error: Invalid email or password.');
+        throw Exception('Invalid email or password.');
+      }
+      print('Supabase Login Error: ${error.message}');
+      throw Exception('Login failed: ${error.message}');
     } catch (e) {
-      print('Error fetching patient profile: $e');
-      // Handle potential errors, like PostgrestException if no record found
-      // or multiple records found (though 'unique' constraint should prevent this)
-      return null;
+      print('General Login Error: $e');
+      throw Exception('An unexpected error occurred during login.');
     }
   }
 
-  // Create a new patient record after signup
-  Future<Patient?> createPatientProfile(Patient patientData) async {
-    final user = getCurrentUser();
-    if (user == null) throw Exception("User not logged in");
+  // --- Doctor Data ---
 
+  /// Fetches all doctors for selection during signup.
+  Future<List<Map<String, dynamic>>> getDoctors() async {
     try {
-      final response =
-          await _client
-              .from('patients')
-              .insert(patientData.toJsonForInsert(user.id))
-              .select() // Return the created record
-              .single();
-      return Patient.fromJson(response);
+      final response = await supabase
+          .from('doctors')
+          .select('doctor_id, first_name, last_name, specialization');
+      return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      print('Error creating patient profile: $e');
-      return null;
+      print('Error fetching doctors: $e');
+      return []; // Return empty list on error
     }
   }
 
   // --- Health Metrics ---
 
-  Future<List<HealthMetric>> getHealthMetrics(String patientId) async {
+  /// Adds a new health metric record for a patient.
+  Future<void> addHealthMetric({
+    required String patientId,
+    double? bloodGlucose,
+    int? bpSystolic,
+    int? bpDiastolic,
+    int? pulseRate,
+    String? woundPhotoUrl,
+    String? foodPhotoUrl,
+    String? notes,
+  }) async {
     try {
-      final response = await _client
+      await supabase.from('health_metrics').insert({
+        'patient_id': patientId,
+        'blood_glucose': bloodGlucose,
+        'bp_systolic': bpSystolic,
+        'bp_diastolic': bpDiastolic,
+        'pulse_rate': pulseRate,
+        'wound_photo_url': woundPhotoUrl,
+        'food_photo_url': foodPhotoUrl,
+        'notes': notes,
+        'submission_date':
+            DateTime.now().toIso8601String(), // Record submission time
+      });
+      print('Health metric added successfully.');
+    } catch (e) {
+      print('Error adding health metric: $e');
+      throw Exception('Failed to add health metric.');
+    }
+  }
+
+  /// Fetches health metrics for a specific patient.
+  Future<List<Map<String, dynamic>>> getHealthMetrics(String patientId) async {
+    try {
+      final response = await supabase
           .from('health_metrics')
           .select()
           .eq('patient_id', patientId)
           .order('submission_date', ascending: false); // Show newest first
-
-      return response.map((json) => HealthMetric.fromJson(json)).toList();
+      return List<Map<String, dynamic>>.from(response);
     } catch (e) {
       print('Error fetching health metrics: $e');
       return []; // Return empty list on error
     }
   }
 
-  Future<HealthMetric?> addHealthMetric(HealthMetric metricData) async {
-    // We need the patient_id associated with the current user
-    // This assumes the patient profile is already fetched and available
-    // In a real app, you'd likely get this from your AuthProvider/PatientProvider
-    // For now, let's assume it's passed correctly in metricData.patientId
+  // --- Image Upload ---
 
+  /// Picks an image from the gallery or camera.
+  Future<XFile?> pickImage(ImageSource source) async {
     try {
-      final response =
-          await _client
-              .from('health_metrics')
-              .insert(
-                metricData.toJsonForInsert(metricData.patientId),
-              ) // Pass patientId here
-              .select()
-              .single();
-      return HealthMetric.fromJson(response);
+      final XFile? pickedFile = await _picker.pickImage(source: source);
+      return pickedFile;
     } catch (e) {
-      print('Error adding health metric: $e');
+      print("Error picking image: $e");
       return null;
     }
   }
 
-  // --- Reminders ---
-
-  Future<List<Reminder>> getReminders(String patientId) async {
+  /// Uploads an image file to Supabase Storage.
+  /// Returns the public URL of the uploaded file.
+  Future<String?> uploadImage(
+    XFile imageFile,
+    String bucketName,
+    String patientId,
+  ) async {
     try {
-      final response = await _client
-          .from('reminders')
-          .select()
-          .eq('patient_id', patientId)
-          .order('reminder_time', ascending: true); // Order by time
+      final fileExt = imageFile.path.split('.').last;
+      final fileName =
+          '${patientId}_${DateTime.now().millisecondsSinceEpoch}.$fileExt';
+      final filePath = '$patientId/$fileName'; // Organize files by patient ID
 
-      return response.map((json) => Reminder.fromJson(json)).toList();
-    } catch (e) {
-      print('Error fetching reminders: $e');
-      return [];
-    }
-  }
+      // Upload the file
+      await supabase.storage
+          .from(bucketName)
+          .upload(
+            filePath,
+            File(imageFile.path),
+            fileOptions: const FileOptions(
+              cacheControl: '3600',
+              upsert: false,
+            ), // Cache for 1 hour
+          );
 
-  Future<Reminder?> addReminder(Reminder reminderData) async {
-    // Similar to addHealthMetric, ensure reminderData.patientId is set correctly
-    try {
-      final response =
-          await _client
-              .from('reminders')
-              .insert(reminderData.toJsonForInsert(reminderData.patientId))
-              .select()
-              .single();
-      return Reminder.fromJson(response);
-    } catch (e) {
-      print('Error adding reminder: $e');
-      return null;
-    }
-  }
+      // Get the public URL
+      final imageUrlResponse = supabase.storage
+          .from(bucketName)
+          .getPublicUrl(filePath);
 
-  Future<Reminder?> updateReminder(Reminder reminderData) async {
-    try {
-      final response =
-          await _client
-              .from('reminders')
-              .update(reminderData.toJsonForUpdate())
-              .eq(
-                'reminder_id',
-                reminderData.reminderId,
-              ) // Match the specific reminder
-              .select()
-              .single();
-      return Reminder.fromJson(response);
+      print('Upload successful: $imageUrlResponse');
+      return imageUrlResponse;
+    } on StorageException catch (error) {
+      print('Supabase Storage Error: ${error.message}');
+      if (error.message.contains('Bucket not found')) {
+        throw Exception(
+          'Storage bucket "$bucketName" not found. Please create it in Supabase.',
+        );
+      }
+      throw Exception('Failed to upload image: ${error.message}');
     } catch (e) {
-      print('Error updating reminder: $e');
-      return null;
-    }
-  }
-
-  Future<void> deleteReminder(String reminderId) async {
-    try {
-      await _client.from('reminders').delete().eq('reminder_id', reminderId);
-    } catch (e) {
-      print('Error deleting reminder: $e');
+      print('Error uploading image: $e');
+      throw Exception('An unexpected error occurred during image upload.');
     }
   }
 }

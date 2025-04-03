@@ -1,127 +1,62 @@
-// lib/main.dart (Corrected Provider Setup)
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'screens/login_screen.dart'; // Assuming login screen is the entry point
 
-import 'config/supabase_config.dart';
-import 'services/supabase_service.dart';
-import 'services/notification_service.dart';
-import 'providers/auth_provider.dart';
-import 'providers/metrics_provider.dart';
-import 'providers/reminders_provider.dart';
-import 'screens/splash_screen.dart';
-import 'screens/auth_screen.dart';
-import 'screens/home_screen.dart';
-import 'screens/add_metric_screen.dart';
-import 'screens/metrics_history_screen.dart';
-import 'screens/add_reminder_screen.dart';
-import 'screens/reminders_screen.dart';
+// --- IMPORTANT: Replace with your Supabase details ---
+const String supabaseUrl = 'https://wvpjwsectrwohraolniu.supabase.co';
+const String supabaseAnonKey =
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2cGp3c2VjdHJ3b2hyYW9sbml1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM2MDgzNjQsImV4cCI6MjA1OTE4NDM2NH0.4DAp0jYwzqdPkjeGbvCl-KkhvQh_wBKKU_RvjQY0urU';
+// ----------------------------------------------------
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized(); // Required for Supabase init
 
-  await Supabase.initialize(url: SUPABASE_URL, anonKey: SUPABASE_ANON_KEY);
-
-  await NotificationService().initialize();
-
-  final supabaseService = await SupabaseService.getInstance();
-  final notificationService = NotificationService();
-
-  runApp(
-    MyApp(
-      supabaseService: supabaseService,
-      notificationService: notificationService,
-    ),
+  // Initialize Supabase
+  await Supabase.initialize(
+    url: supabaseUrl,
+    anonKey: supabaseAnonKey,
+    // You can configure other options like auth persistence, realtime, etc.
+    // storageRetryAttempts: 2, // Example: configure storage options
   );
+
+  runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
-  final SupabaseService supabaseService;
-  final NotificationService notificationService;
+// Get a reference to the Supabase client throughout the app
+final supabase = Supabase.instance.client;
 
-  const MyApp({
-    Key? key,
-    required this.supabaseService,
-    required this.notificationService,
-  }) : super(key: key);
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider<AuthProvider>(
-          create: (_) => AuthProvider(supabaseService),
+    return MaterialApp(
+      title: 'Patient Health Tracker',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+        useMaterial3: true, // Optional: Use Material 3 design
+        inputDecorationTheme: InputDecorationTheme(
+          // Consistent styling
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
+          filled: true,
+          fillColor: Colors.grey[100],
         ),
-        // Corrected ChangeNotifierProxyProvider setup:
-        // 'create' only needs context. Dependencies are passed in 'update'.
-        // We provide an initial instance in 'create' that will be immediately
-        // updated by 'update' once AuthProvider is available.
-        ChangeNotifierProxyProvider<AuthProvider, MetricsProvider>(
-          // Create an initial instance. It will be updated immediately.
-          create:
-              (context) => MetricsProvider(
-                supabaseService,
-                Provider.of<AuthProvider>(
-                  context,
-                  listen: false,
-                ), // Get initial auth state
-              ),
-          // Update gets the AuthProvider instance and the previous MetricsProvider state
-          update:
-              (context, auth, previousMetrics) =>
-                  MetricsProvider(supabaseService, auth),
-        ),
-        ChangeNotifierProxyProvider<AuthProvider, RemindersProvider>(
-          // Create an initial instance.
-          create:
-              (context) => RemindersProvider(
-                supabaseService,
-                notificationService,
-                Provider.of<AuthProvider>(
-                  context,
-                  listen: false,
-                ), // Get initial auth state
-              ),
-          // Update gets AuthProvider and previous RemindersProvider state
-          update:
-              (context, auth, previousReminders) =>
-                  RemindersProvider(supabaseService, notificationService, auth),
-        ),
-      ],
-      child: MaterialApp(
-        title: 'Patient Health Tracker',
-        theme: ThemeData(
-          primarySwatch: Colors.teal,
-          visualDensity: VisualDensity.adaptivePlatformDensity,
-          inputDecorationTheme: InputDecorationTheme(
-            border: OutlineInputBorder(
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          // Consistent button style
+          style: ElevatedButton.styleFrom(
+            shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8.0),
             ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8.0),
-              borderSide: BorderSide(color: Colors.teal.shade300, width: 2.0),
-            ),
-          ),
-          elevatedButtonTheme: ElevatedButtonThemeData(
-            style: ElevatedButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            padding: const EdgeInsets.symmetric(
+              vertical: 12.0,
+              horizontal: 20.0,
             ),
           ),
         ),
-        home: const SplashScreen(),
-        routes: {
-          AuthScreen.routeName: (ctx) => const AuthScreen(),
-          HomeScreen.routeName: (ctx) => const HomeScreen(),
-          // Ensure these screens exist and define routeName
-          AddMetricScreen.routeName: (ctx) => const AddMetricScreen(),
-          MetricsHistoryScreen.routeName: (ctx) => const MetricsHistoryScreen(),
-          AddReminderScreen.routeName: (ctx) => const AddReminderScreen(),
-          RemindersScreen.routeName: (ctx) => const RemindersScreen(),
-        },
       ),
+      debugShowCheckedModeBanner: false, // Hide debug banner
+      home: const LoginScreen(), // Start with the Login Screen
     );
   }
 }
