@@ -1,23 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'screens/login_screen.dart'; // Assuming login screen is the entry point
+import 'screens/login_screen.dart';
 
-// --- IMPORTANT: Replace with your Supabase details ---
 const String supabaseUrl = 'https://wvpjwsectrwohraolniu.supabase.co';
 const String supabaseAnonKey =
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2cGp3c2VjdHJ3b2hyYW9sbml1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM2MDgzNjQsImV4cCI6MjA1OTE4NDM2NH0.4DAp0jYwzqdPkjeGbvCl-KkhvQh_wBKKU_RvjQY0urU';
-// ----------------------------------------------------
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Required for Supabase init
 
   // Initialize Supabase
-  await Supabase.initialize(
-    url: supabaseUrl,
-    anonKey: supabaseAnonKey,
-    // You can configure other options like auth persistence, realtime, etc.
-    // storageRetryAttempts: 2, // Example: configure storage options
-  );
+  await Supabase.initialize(url: supabaseUrl, anonKey: supabaseAnonKey);
 
   runApp(const MyApp());
 }
@@ -35,15 +28,13 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
-        useMaterial3: true, // Optional: Use Material 3 design
+        useMaterial3: true,
         inputDecorationTheme: InputDecorationTheme(
-          // Consistent styling
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
           filled: true,
           fillColor: Colors.grey[100],
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
-          // Consistent button style
           style: ElevatedButton.styleFrom(
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8.0),
@@ -55,7 +46,7 @@ class MyApp extends StatelessWidget {
           ),
         ),
       ),
-      debugShowCheckedModeBanner: false, // Hide debug banner
+      debugShowCheckedModeBanner: false,
       home: const LoginScreen(), // Start with the Login Screen
     );
   }

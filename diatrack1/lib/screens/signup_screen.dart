@@ -25,6 +25,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   String? _errorMessage;
   DateTime? _selectedDateOfBirth;
   String? _selectedDoctorId;
+  String? _selectedSurgicalStatus;
   List<Map<String, dynamic>> _doctors = []; // List to hold fetched doctors
 
   @override
@@ -108,9 +109,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
         firstName: _firstNameController.text.trim(),
         lastName: _lastNameController.text.trim(),
         email: _emailController.text.trim(),
-        password:
-            _passwordController.text, // Pass plain text password - INSECURE
+        password: _passwordController.text,
         preferredDoctorId: _selectedDoctorId,
+        surgicalStatus: _selectedSurgicalStatus,
         dateOfBirth: _selectedDateOfBirth,
         contactInfo:
             _contactController.text.trim().isNotEmpty
@@ -324,7 +325,32 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                 ),
               const SizedBox(height: 24),
-
+              DropdownButtonFormField<String>(
+                value: _selectedSurgicalStatus,
+                decoration: const InputDecoration(
+                  labelText: 'Surgical Status',
+                  prefixIcon: Icon(Icons.medical_services),
+                ),
+                items: const [
+                  DropdownMenuItem(
+                    value: 'Pre-Operative',
+                    child: Text('Pre-Operative'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'Post-Operative',
+                    child: Text('Post-Operative'),
+                  ),
+                ],
+                validator:
+                    (value) =>
+                        value == null ? 'Please select surgical status' : null,
+                onChanged: (value) {
+                  setState(() {
+                    _selectedSurgicalStatus = value;
+                  });
+                },
+              ),
+              const SizedBox(height: 16),
               // Error Message Display
               if (_errorMessage != null)
                 Padding(
@@ -361,7 +387,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
               const SizedBox(height: 20),
               const Text(
-                '⚠️ Warning: This signup uses insecure password handling for demonstration purposes only.',
+                'For demonstration purposes only.',
                 style: TextStyle(color: Colors.orange, fontSize: 12),
                 textAlign: TextAlign.center,
               ),

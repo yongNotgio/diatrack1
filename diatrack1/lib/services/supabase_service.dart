@@ -2,24 +2,20 @@ import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 
-// Get a reference to the Supabase client
 final supabase = Supabase.instance.client;
 
 class SupabaseService {
   final ImagePicker _picker = ImagePicker();
 
-  // --- Authentication (Manual - INSECURE) ---
-
-  /// Attempts to sign up a new patient.
-  /// WARNING: Stores password in plain text. Highly insecure.
   Future<Map<String, dynamic>?> signUpPatient({
     required String firstName,
     required String lastName,
     required String email,
     required String password,
-    required String? preferredDoctorId, // Make sure this ID exists in 'doctors'
+    required String? preferredDoctorId,
     DateTime? dateOfBirth,
     String? contactInfo,
+    required String? surgicalStatus,
   }) async {
     try {
       final response =
@@ -29,33 +25,25 @@ class SupabaseService {
                 'first_name': firstName,
                 'last_name': lastName,
                 'email': email.trim().toLowerCase(),
-                'password':
-                    password, // Storing plain text password - VERY BAD PRACTICE
+                'password': password,
                 'preferred_doctor_id': preferredDoctorId,
                 'date_of_birth': dateOfBirth?.toIso8601String(),
                 'contact_info': contactInfo,
+                'phase': surgicalStatus,
               })
-              .select() // Select the newly created record
-              .single(); // Expect only one record
-
-      print('Sign up successful: ${response}');
-      return response; // Return patient data
+              .select()
+              .single();
+      return response;
     } on PostgrestException catch (error) {
-      print('Supabase Sign Up Error: ${error.message}');
-      // Handle specific errors like unique constraint violation (email exists)
       if (error.code == '23505') {
-        // Unique violation code
         throw Exception('Email already exists.');
       }
       throw Exception('Sign up failed: ${error.message}');
     } catch (e) {
-      print('General Sign Up Error: $e');
       throw Exception('An unexpected error occurred during sign up.');
     }
   }
 
-  /// Attempts to log in a patient by checking email and plain text password.
-  /// WARNING: Compares plain text passwords. Highly insecure.
   Future<Map<String, dynamic>?> loginPatient({
     required String email,
     required String password,
@@ -66,32 +54,19 @@ class SupabaseService {
               .from('patients')
               .select()
               .eq('email', email.trim().toLowerCase())
-              .eq(
-                'password',
-                password,
-              ) // Comparing plain text password - VERY BAD PRACTICE
-              .single(); // Expect exactly one match
-
-      print('Login successful for: ${response['email']}');
-      return response; // Return patient data
+              .eq('password', password)
+              .single();
+      return response;
     } on PostgrestException catch (error) {
-      // Handle cases where no user is found or multiple users (shouldn't happen with unique email)
       if (error.code == 'PGRST116') {
-        // PGRST116: JSON object requested, multiple (or no) rows returned
-        print('Login Error: Invalid email or password.');
         throw Exception('Invalid email or password.');
       }
-      print('Supabase Login Error: ${error.message}');
       throw Exception('Login failed: ${error.message}');
     } catch (e) {
-      print('General Login Error: $e');
       throw Exception('An unexpected error occurred during login.');
     }
   }
 
-  // --- Doctor Data ---
-
-  /// Fetches all doctors for selection during signup.
   Future<List<Map<String, dynamic>>> getDoctors() async {
     try {
       final response = await supabase
@@ -99,14 +74,10 @@ class SupabaseService {
           .select('doctor_id, first_name, last_name, specialization');
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      print('Error fetching doctors: $e');
-      return []; // Return empty list on error
+      return [];
     }
   }
 
-  // --- Health Metrics ---
-
-  /// Adds a new health metric record for a patient.
   Future<void> addHealthMetric({
     required String patientId,
     double? bloodGlucose,
@@ -116,9 +87,11 @@ class SupabaseService {
     String? woundPhotoUrl,
     String? foodPhotoUrl,
     String? notes,
+    String? metricId,
   }) async {
     try {
-      await supabase.from('health_metrics').insert({
+      final now = DateTime.now().toIso8601String();
+      final data = {
         'patient_id': patientId,
         'blood_glucose': bloodGlucose,
         'bp_systolic': bpSystolic,
@@ -127,46 +100,62 @@ class SupabaseService {
         'wound_photo_url': woundPhotoUrl,
         'food_photo_url': foodPhotoUrl,
         'notes': notes,
-        'submission_date':
-            DateTime.now().toIso8601String(), // Record submission time
-      });
-      print('Health metric added successfully.');
+        'updated_at': now,
+      };
+
+      if (metricId == null) {
+        // For new entries, set both submission_date and updated_at to current time
+        data['submission_date'] = now;
+        await supabase.from('health_metrics').insert(data);
+      } else {
+        // For updates, only update the fields and updated_at timestamp
+        await supabase.from('health_metrics').update(data).eq('id', metricId);
+      }
     } catch (e) {
-      print('Error adding health metric: $e');
-      throw Exception('Failed to add health metric.');
+      throw Exception('Failed to save health metric: $e');
     }
   }
 
-  /// Fetches health metrics for a specific patient.
   Future<List<Map<String, dynamic>>> getHealthMetrics(String patientId) async {
     try {
       final response = await supabase
           .from('health_metrics')
           .select()
           .eq('patient_id', patientId)
-          .order('submission_date', ascending: false); // Show newest first
+          .order('submission_date', ascending: false);
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      print('Error fetching health metrics: $e');
-      return []; // Return empty list on error
+      throw Exception('Failed to fetch health metrics: $e');
     }
   }
 
-  // --- Image Upload ---
+  // Future<void> deleteHealthMetric(String metricId) async {
+  //   try {
+  //     final response =
+  //         await supabase
+  //             .from('health_metrics')
+  //             .delete()
+  //             .eq('id', metricId)
+  //             .select();
 
-  /// Picks an image from the gallery or camera.
+  //     if (response.isEmpty) {
+  //       throw Exception('No record found with ID: $metricId');
+  //     }
+  //   } on PostgrestException catch (e) {
+  //     throw Exception('Database error: ${e.message}');
+  //   } catch (e) {
+  //     throw Exception('Failed to delete health metric: ${e.toString()}');
+  //   }
+  // }
+
   Future<XFile?> pickImage(ImageSource source) async {
     try {
-      final XFile? pickedFile = await _picker.pickImage(source: source);
-      return pickedFile;
+      return await _picker.pickImage(source: source);
     } catch (e) {
-      print("Error picking image: $e");
-      return null;
+      throw Exception('Failed to pick image: $e');
     }
   }
 
-  /// Uploads an image file to Supabase Storage.
-  /// Returns the public URL of the uploaded file.
   Future<String?> uploadImage(
     XFile imageFile,
     String bucketName,
@@ -176,38 +165,37 @@ class SupabaseService {
       final fileExt = imageFile.path.split('.').last;
       final fileName =
           '${patientId}_${DateTime.now().millisecondsSinceEpoch}.$fileExt';
-      final filePath = '$patientId/$fileName'; // Organize files by patient ID
+      final filePath = '$patientId/$fileName';
 
-      // Upload the file
       await supabase.storage
           .from(bucketName)
           .upload(
             filePath,
             File(imageFile.path),
-            fileOptions: const FileOptions(
-              cacheControl: '3600',
-              upsert: false,
-            ), // Cache for 1 hour
+            fileOptions: const FileOptions(cacheControl: '3600', upsert: false),
           );
 
-      // Get the public URL
-      final imageUrlResponse = supabase.storage
-          .from(bucketName)
-          .getPublicUrl(filePath);
-
-      print('Upload successful: $imageUrlResponse');
-      return imageUrlResponse;
+      return supabase.storage.from(bucketName).getPublicUrl(filePath);
     } on StorageException catch (error) {
-      print('Supabase Storage Error: ${error.message}');
       if (error.message.contains('Bucket not found')) {
-        throw Exception(
-          'Storage bucket "$bucketName" not found. Please create it in Supabase.',
-        );
+        throw Exception('Storage bucket "$bucketName" not found.');
       }
       throw Exception('Failed to upload image: ${error.message}');
     } catch (e) {
-      print('Error uploading image: $e');
-      throw Exception('An unexpected error occurred during image upload.');
+      throw Exception('Image upload failed: $e');
+    }
+  }
+
+  Future<void> deleteImage(String photoUrl) async {
+    try {
+      final uri = Uri.parse(photoUrl);
+      final pathSegments = uri.pathSegments;
+      final bucket = pathSegments[1];
+      final path = pathSegments.sublist(2).join('/');
+
+      await supabase.storage.from(bucket).remove([path]);
+    } catch (e) {
+      throw Exception('Failed to delete image: $e');
     }
   }
 }

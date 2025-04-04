@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // For date formatting
+import 'package:intl/intl.dart';
 import '../services/supabase_service.dart';
 import 'add_metrics_screen.dart';
-import 'login_screen.dart'; // For logout
+import 'login_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  final Map<String, dynamic> patientData; // Pass patient data from login
+  final Map<String, dynamic> patientData;
 
   const HomeScreen({super.key, required this.patientData});
 
@@ -35,39 +35,33 @@ class _HomeScreenState extends State<HomeScreen> {
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (context) => const LoginScreen()),
-      (Route<dynamic> route) => false, // Remove all previous routes
+      (Route<dynamic> route) => false,
     );
   }
 
-  // Helper to format date/time nicely
   String _formatDateTime(String? isoString) {
     if (isoString == null) return 'N/A';
     try {
-      final dateTime = DateTime.parse(
-        isoString,
-      ).toUtc().subtract(Duration(hours: 8));
+      final dateTime = DateTime.parse(isoString).toLocal();
       return DateFormat('MMM d, yyyy - hh:mm a').format(dateTime);
     } catch (e) {
       return 'Invalid Date';
     }
   }
 
-  // Function to handle delete photo
-  void _deletePhoto(String photoUrl) {
-    // Implement delete photo logic
-    setState(() {
-      // You would call the service to delete the photo from your storage here
-      print('Deleting photo: $photoUrl');
-    });
-  }
+  Future<void> _editLog(Map<String, dynamic> metric) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder:
+            (context) =>
+                AddMetricsScreen(patientId: _patientId, existingMetric: metric),
+      ),
+    );
 
-  // Function to handle edit photo
-  void _editPhoto(String photoUrl) {
-    // Implement edit photo logic
-    setState(() {
-      // You would navigate to an image edit screen or upload a new image here
-      print('Editing photo: $photoUrl');
-    });
+    if (result == true) {
+      _loadMetrics();
+    }
   }
 
   @override
@@ -88,159 +82,161 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: RefreshIndicator(
         onRefresh: () async => _loadMetrics(),
-        child: FutureBuilder<List<Map<String, dynamic>>>(
-          future: _metricsFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (snapshot.hasError) {
-              return Center(
-                child: Text('Error loading metrics: ${snapshot.error}'),
-              );
-            }
-            if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return const Center(
-                child: Text(
-                  'No health metrics recorded yet.\nTap the + button to add your first entry!',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 16, color: Colors.grey),
-                ),
-              );
-            }
-
-            final metrics = snapshot.data!;
-
-            return ListView.builder(
-              padding: const EdgeInsets.all(8.0),
-              itemCount: metrics.length,
-              itemBuilder: (context, index) {
-                final metric = metrics[index];
-                return Card(
-                  margin: const EdgeInsets.symmetric(vertical: 8.0),
-                  elevation: 2.0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.all(16.0),
-                    title: Text(
-                      'Log Entry - ${_formatDateTime(metric['submission_date'] as String?)}',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              // Medications Card - Added at the top
+              if (widget.patientData['medication'] != null &&
+                  (widget.patientData['medication'] as String).isNotEmpty)
+                Card(
+                  margin: const EdgeInsets.all(8.0),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Current Medications',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          widget.patientData['medication'] as String,
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                      ],
                     ),
-                    subtitle: Padding(
-                      padding: const EdgeInsets.only(top: 8.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (metric['blood_glucose'] != null)
-                            Text(
-                              'Blood Glucose: ${metric['blood_glucose']} mg/dL',
-                            ),
-                          if (metric['bp_systolic'] != null &&
-                              metric['bp_diastolic'] != null)
-                            Text(
-                              'Blood Pressure: ${metric['bp_systolic']} / ${metric['bp_diastolic']} mmHg',
-                            ),
-                          if (metric['pulse_rate'] != null)
-                            Text('Pulse Rate: ${metric['pulse_rate']} bpm'),
-                          if (metric['notes'] != null &&
-                              (metric['notes'] as String).isNotEmpty)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 4.0),
-                              child: Text('Notes: ${metric['notes']}'),
-                            ),
-                          // Display actual photos with options to delete or edit
-                          if (metric['wound_photo_url'] != null)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 8.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                  ),
+                ),
+
+              // Metrics List
+              FutureBuilder<List<Map<String, dynamic>>>(
+                future: _metricsFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: Text('Error loading metrics: ${snapshot.error}'),
+                    );
+                  }
+                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(
+                      child: Text(
+                        'No health metrics recorded yet.\nTap the + button to add your first entry!',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                      ),
+                    );
+                  }
+
+                  final metrics = snapshot.data!;
+
+                  return ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    padding: const EdgeInsets.all(8.0),
+                    itemCount: metrics.length,
+                    itemBuilder: (context, index) {
+                      final metric = metrics[index];
+                      return Card(
+                        margin: const EdgeInsets.symmetric(vertical: 8.0),
+                        elevation: 2.0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Image.network(
+                                  Text(
+                                    'Log Entry - ${_formatDateTime(metric['submission_date'] as String?)}',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Row(
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(Icons.edit, size: 20),
+                                        color: Colors.blue,
+                                        onPressed: () => _editLog(metric),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              if (metric['blood_glucose'] != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 4.0),
+                                  child: Text(
+                                    'Blood Glucose: ${metric['blood_glucose']} mg/dL',
+                                  ),
+                                ),
+                              if (metric['bp_systolic'] != null &&
+                                  metric['bp_diastolic'] != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 4.0),
+                                  child: Text(
+                                    'Blood Pressure: ${metric['bp_systolic']} / ${metric['bp_diastolic']} mmHg',
+                                  ),
+                                ),
+                              if (metric['pulse_rate'] != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 4.0),
+                                  child: Text(
+                                    'Pulse Rate: ${metric['pulse_rate']} bpm',
+                                  ),
+                                ),
+                              if (metric['notes'] != null &&
+                                  (metric['notes'] as String).isNotEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                    top: 4.0,
+                                    bottom: 4.0,
+                                  ),
+                                  child: Text('Notes: ${metric['notes']}'),
+                                ),
+                              if (metric['wound_photo_url'] != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8.0),
+                                  child: Image.network(
                                     metric['wound_photo_url']!,
                                     height: 100,
                                     width: 100,
                                     fit: BoxFit.cover,
                                   ),
-                                  Row(
-                                    children: [
-                                      IconButton(
-                                        icon: Icon(
-                                          Icons.edit,
-                                          size: 20,
-                                          color: Colors.blue,
-                                        ),
-                                        onPressed:
-                                            () => _editPhoto(
-                                              metric['wound_photo_url']!,
-                                            ),
-                                      ),
-                                      IconButton(
-                                        icon: Icon(
-                                          Icons.delete,
-                                          size: 20,
-                                          color: Colors.red,
-                                        ),
-                                        onPressed:
-                                            () => _deletePhoto(
-                                              metric['wound_photo_url']!,
-                                            ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          if (metric['food_photo_url'] != null)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 8.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Image.network(
+                                ),
+                              if (metric['food_photo_url'] != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8.0),
+                                  child: Image.network(
                                     metric['food_photo_url']!,
                                     height: 100,
                                     width: 100,
                                     fit: BoxFit.cover,
                                   ),
-                                  Row(
-                                    children: [
-                                      IconButton(
-                                        icon: Icon(
-                                          Icons.edit,
-                                          size: 20,
-                                          color: Colors.blue,
-                                        ),
-                                        onPressed:
-                                            () => _editPhoto(
-                                              metric['food_photo_url']!,
-                                            ),
-                                      ),
-                                      IconButton(
-                                        icon: Icon(
-                                          Icons.delete,
-                                          size: 20,
-                                          color: Colors.red,
-                                        ),
-                                        onPressed:
-                                            () => _deletePhoto(
-                                              metric['food_photo_url']!,
-                                            ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              },
-            );
-          },
+                                ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton(

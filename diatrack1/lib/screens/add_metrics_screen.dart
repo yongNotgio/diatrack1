@@ -1,13 +1,18 @@
-import 'dart:io'; // Required for File type
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // For input formatters
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import '../services/supabase_service.dart';
 
 class AddMetricsScreen extends StatefulWidget {
   final String patientId;
+  final Map<String, dynamic>? existingMetric;
 
-  const AddMetricsScreen({super.key, required this.patientId});
+  const AddMetricsScreen({
+    super.key,
+    required this.patientId,
+    this.existingMetric,
+  });
 
   @override
   State<AddMetricsScreen> createState() => _AddMetricsScreenState();
@@ -17,7 +22,6 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
   final _formKey = GlobalKey<FormState>();
   final _supabaseService = SupabaseService();
 
-  // Controllers for form fields
   final _glucoseController = TextEditingController();
   final _systolicController = TextEditingController();
   final _diastolicController = TextEditingController();
@@ -26,8 +30,29 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
 
   XFile? _woundImageFile;
   XFile? _foodImageFile;
+  String? _woundPhotoUrl;
+  String? _foodPhotoUrl;
   bool _isUploading = false;
   String? _uploadError;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.existingMetric != null) {
+      _loadExistingData();
+    }
+  }
+
+  void _loadExistingData() {
+    final metric = widget.existingMetric!;
+    _glucoseController.text = metric['blood_glucose']?.toString() ?? '';
+    _systolicController.text = metric['bp_systolic']?.toString() ?? '';
+    _diastolicController.text = metric['bp_diastolic']?.toString() ?? '';
+    _pulseController.text = metric['pulse_rate']?.toString() ?? '';
+    _notesController.text = metric['notes']?.toString() ?? '';
+    _woundPhotoUrl = metric['wound_photo_url']?.toString();
+    _foodPhotoUrl = metric['food_photo_url']?.toString();
+  }
 
   @override
   void dispose() {
@@ -45,8 +70,10 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
       setState(() {
         if (isWoundPhoto) {
           _woundImageFile = pickedFile;
+          _woundPhotoUrl = null;
         } else {
           _foodImageFile = pickedFile;
+          _foodPhotoUrl = null;
         }
       });
     }
@@ -83,63 +110,65 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
   }
 
   Future<void> _submitMetrics() async {
-    if (!_formKey.currentState!.validate()) {
-      return; // Don't submit if form is invalid
-    }
-    if (_isUploading) return; // Prevent double submission
+    if (!_formKey.currentState!.validate()) return;
+    if (_isUploading) return;
 
     setState(() {
       _isUploading = true;
       _uploadError = null;
     });
 
-    String? woundPhotoUrl;
-    String? foodPhotoUrl;
-
     try {
-      // 1. Upload Wound Photo (if selected)
       if (_woundImageFile != null) {
-        // Use 'wound_photos' bucket - MAKE SURE THIS BUCKET EXISTS AND IS PUBLIC (or handle signed URLs)
-        woundPhotoUrl = await _supabaseService.uploadImage(
+        final url = await _supabaseService.uploadImage(
           _woundImageFile!,
-          'wound-photos', // Supabase Storage Bucket Name
+          'wound-photos',
           widget.patientId,
         );
-        if (woundPhotoUrl == null)
-          throw Exception("Wound photo upload failed.");
+        if (url == null) throw Exception("Wound photo upload failed.");
+        _woundPhotoUrl = url;
       }
 
-      // 2. Upload Food Photo (if selected)
       if (_foodImageFile != null) {
-        // Use 'food_photos' bucket - MAKE SURE THIS BUCKET EXISTS AND IS PUBLIC (or handle signed URLs)
-        foodPhotoUrl = await _supabaseService.uploadImage(
+        final url = await _supabaseService.uploadImage(
           _foodImageFile!,
-          'food-photos', // Supabase Storage Bucket Name
+          'food-photos',
           widget.patientId,
         );
-        if (foodPhotoUrl == null) throw Exception("Food photo upload failed.");
+        if (url == null) throw Exception("Food photo upload failed.");
+        _foodPhotoUrl = url;
       }
 
-      // 3. Submit metric data along with photo URLs
+      if (widget.existingMetric != null) {
+        final existing = widget.existingMetric!;
+        if (_woundImageFile != null && existing['wound_photo_url'] != null) {
+          await _supabaseService.deleteImage(existing['wound_photo_url']!);
+        }
+        if (_foodImageFile != null && existing['food_photo_url'] != null) {
+          await _supabaseService.deleteImage(existing['food_photo_url']!);
+        }
+      }
+
       await _supabaseService.addHealthMetric(
         patientId: widget.patientId,
         bloodGlucose: double.tryParse(_glucoseController.text),
         bpSystolic: int.tryParse(_systolicController.text),
         bpDiastolic: int.tryParse(_diastolicController.text),
         pulseRate: int.tryParse(_pulseController.text),
-        woundPhotoUrl: woundPhotoUrl, // Pass the URL obtained after upload
-        foodPhotoUrl: foodPhotoUrl, // Pass the URL obtained after upload
+        woundPhotoUrl: _woundPhotoUrl,
+        foodPhotoUrl: _foodPhotoUrl,
         notes: _notesController.text.trim(),
+        metricId: widget.existingMetric?['id'],
       );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Metrics submitted successfully!'),
+            content: Text('Metrics saved successfully!'),
             backgroundColor: Colors.green,
           ),
         );
-        Navigator.pop(context, true); // Pop screen and indicate success
+        Navigator.pop(context, true);
       }
     } catch (e) {
       if (mounted) {
@@ -166,7 +195,13 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Add New Health Log')),
+      appBar: AppBar(
+        title: Text(
+          widget.existingMetric == null
+              ? 'Add New Health Log'
+              : 'Edit Health Log',
+        ),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Form(
@@ -180,30 +215,20 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
-
-              // Blood Glucose
               TextFormField(
                 controller: _glucoseController,
                 decoration: const InputDecoration(
                   labelText: 'Blood Glucose (mg/dL)',
-                  prefixIcon: Icon(Icons.opacity), // Droplet icon
+                  prefixIcon: Icon(Icons.opacity),
                 ),
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,1}')),
-                ], // Allow numbers and one decimal
-                // validator: (value) { // Optional validation
-                //   if (value != null && value.isNotEmpty && double.tryParse(value) == null) {
-                //     return 'Please enter a valid number';
-                //   }
-                //   return null;
-                // },
+                ],
               ),
               const SizedBox(height: 16),
-
-              // Blood Pressure (Systolic/Diastolic) - Row
               Row(
                 children: [
                   Expanded(
@@ -211,9 +236,7 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
                       controller: _systolicController,
                       decoration: const InputDecoration(
                         labelText: 'BP Systolic (mmHg)',
-                        prefixIcon: Icon(
-                          Icons.favorite_border,
-                        ), // Heart icon variation
+                        prefixIcon: Icon(Icons.favorite_border),
                       ),
                       keyboardType: TextInputType.number,
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -225,7 +248,7 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
                       controller: _diastolicController,
                       decoration: const InputDecoration(
                         labelText: 'BP Diastolic (mmHg)',
-                        prefixIcon: Icon(Icons.favorite), // Filled heart icon
+                        prefixIcon: Icon(Icons.favorite),
                       ),
                       keyboardType: TextInputType.number,
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -234,20 +257,16 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
                 ],
               ),
               const SizedBox(height: 16),
-
-              // Pulse Rate
               TextFormField(
                 controller: _pulseController,
                 decoration: const InputDecoration(
                   labelText: 'Pulse Rate (bpm)',
-                  prefixIcon: Icon(Icons.monitor_heart), // ECG icon
+                  prefixIcon: Icon(Icons.monitor_heart),
                 ),
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               ),
               const SizedBox(height: 24),
-
-              // Wound Photo Upload
               const Text(
                 'Wound Photo (Optional)',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
@@ -258,82 +277,13 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
                   ElevatedButton.icon(
                     icon: const Icon(Icons.camera_alt),
                     label: const Text('Upload Wound Photo'),
-                    onPressed:
-                        () => _showImagePickerOptions(
-                          true,
-                        ), // true for wound photo
+                    onPressed: () => _showImagePickerOptions(true),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blueGrey[50],
                     ),
                   ),
                   const SizedBox(width: 16),
-                  if (_woundImageFile != null)
-                    Expanded(
-                      // Use Expanded to prevent overflow
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.check_circle,
-                            color: Colors.green,
-                            size: 18,
-                          ),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              _woundImageFile!.name,
-                              overflow:
-                                  TextOverflow
-                                      .ellipsis, // Handle long file names
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                          ),
-                          IconButton(
-                            icon: const Icon(
-                              Icons.clear,
-                              size: 18,
-                              color: Colors.redAccent,
-                            ),
-                            onPressed:
-                                () => setState(() => _woundImageFile = null),
-                            tooltip: 'Remove image',
-                          ),
-                        ],
-                      ),
-                    ),
-                ],
-              ),
-              if (_woundImageFile != null) // Show preview
-                Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: Image.file(
-                    File(_woundImageFile!.path),
-                    height: 100,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              const SizedBox(height: 24),
-
-              // Food/Diet Photo Upload
-              const Text(
-                'Food/Diet Photo (Optional)',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  ElevatedButton.icon(
-                    icon: const Icon(Icons.restaurant_menu),
-                    label: const Text('Upload Food Photo'),
-                    onPressed:
-                        () => _showImagePickerOptions(
-                          false,
-                        ), // false for food photo
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange[50],
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  if (_foodImageFile != null)
+                  if (_woundImageFile != null || _woundPhotoUrl != null)
                     Expanded(
                       child: Row(
                         children: [
@@ -345,7 +295,7 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
-                              _foodImageFile!.name,
+                              _woundImageFile?.name ?? 'Existing photo',
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(fontSize: 12),
                             ),
@@ -357,7 +307,10 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
                               color: Colors.redAccent,
                             ),
                             onPressed:
-                                () => setState(() => _foodImageFile = null),
+                                () => setState(() {
+                                  _woundImageFile = null;
+                                  _woundPhotoUrl = null;
+                                }),
                             tooltip: 'Remove image',
                           ),
                         ],
@@ -365,7 +318,77 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
                     ),
                 ],
               ),
-              if (_foodImageFile != null) // Show preview
+              if (_woundImageFile != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Image.file(
+                    File(_woundImageFile!.path),
+                    height: 100,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              if (_woundPhotoUrl != null && _woundImageFile == null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Image.network(
+                    _woundPhotoUrl!,
+                    height: 100,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              const SizedBox(height: 24),
+              const Text(
+                'Food/Diet Photo (Optional)',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.restaurant_menu),
+                    label: const Text('Upload Food Photo'),
+                    onPressed: () => _showImagePickerOptions(false),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange[50],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  if (_foodImageFile != null || _foodPhotoUrl != null)
+                    Expanded(
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.check_circle,
+                            color: Colors.green,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              _foodImageFile?.name ?? 'Existing photo',
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(
+                              Icons.clear,
+                              size: 18,
+                              color: Colors.redAccent,
+                            ),
+                            onPressed:
+                                () => setState(() {
+                                  _foodImageFile = null;
+                                  _foodPhotoUrl = null;
+                                }),
+                            tooltip: 'Remove image',
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+              if (_foodImageFile != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 8.0),
                   child: Image.file(
@@ -374,22 +397,27 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
                     fit: BoxFit.cover,
                   ),
                 ),
+              if (_foodPhotoUrl != null && _foodImageFile == null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Image.network(
+                    _foodPhotoUrl!,
+                    height: 100,
+                    fit: BoxFit.cover,
+                  ),
+                ),
               const SizedBox(height: 24),
-
-              // Notes
               TextFormField(
                 controller: _notesController,
                 decoration: const InputDecoration(
                   labelText: 'Notes (Optional)',
                   hintText: 'Any additional details...',
                   prefixIcon: Icon(Icons.notes),
-                  alignLabelWithHint: true, // Good for multi-line
+                  alignLabelWithHint: true,
                 ),
-                maxLines: 3, // Allow multiple lines for notes
+                maxLines: 3,
               ),
               const SizedBox(height: 30),
-
-              // Error Message
               if (_uploadError != null)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 16.0),
@@ -401,13 +429,11 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
                     textAlign: TextAlign.center,
                   ),
                 ),
-
-              // Submit Button
               _isUploading
                   ? const Center(child: CircularProgressIndicator())
                   : ElevatedButton.icon(
                     icon: const Icon(Icons.save),
-                    label: const Text('Submit Log'),
+                    label: const Text('Save Log'),
                     onPressed: _submitMetrics,
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 15.0),

@@ -165,7 +165,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 20),
                 const Text(
-                  '⚠️ Warning: This login uses insecure password handling for demonstration purposes only.',
+                  'For demonstration purposes only.',
                   style: TextStyle(color: Colors.orange, fontSize: 12),
                   textAlign: TextAlign.center,
                 ),
