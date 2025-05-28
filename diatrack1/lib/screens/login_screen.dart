@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/supabase_service.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -41,6 +42,13 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (patientData != null && mounted) {
+        // Save user data to shared preferences
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('patient_id', patientData['patient_id']);
+        await prefs.setString('first_name', patientData['first_name']);
+        await prefs.setString('last_name', patientData['last_name']);
+        // Add any other fields you want to persist
+
         Navigator.pushReplacementNamed(
           context,
           '/success',

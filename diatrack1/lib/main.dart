@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/login_screen.dart';
 import 'screens/success_screen.dart';
 import 'screens/home_screen.dart';
@@ -12,13 +13,36 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Supabase.initialize(url: supabaseUrl, anonKey: supabaseAnonKey);
 
-  runApp(const MyApp());
+  // Check for saved user
+  final prefs = await SharedPreferences.getInstance();
+  final patientId = prefs.getString('patient_id');
+  final firstName = prefs.getString('first_name');
+  final lastName = prefs.getString('last_name');
+  // Add any other fields you saved
+
+  runApp(
+    MyApp(
+      initialRoute: (patientId != null) ? '/dashboard' : '/',
+      patientData:
+          (patientId != null)
+              ? {
+                'patient_id': patientId,
+                'first_name': firstName,
+                'last_name': lastName,
+                // Add any other fields
+              }
+              : null,
+    ),
+  );
 }
 
 final supabase = Supabase.instance.client;
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final String initialRoute;
+  final Map<String, dynamic>? patientData;
+
+  const MyApp({super.key, required this.initialRoute, this.patientData});
 
   @override
   Widget build(BuildContext context) {
@@ -46,20 +70,35 @@ class MyApp extends StatelessWidget {
         ),
       ),
       debugShowCheckedModeBanner: false,
-      initialRoute: '/',
-      routes: {'/': (context) => const LoginScreen()},
+      initialRoute: initialRoute,
+      routes: {
+        '/': (context) => const LoginScreen(),
+        // Only include dashboard route if patientData is not null
+        if (patientData != null)
+          '/dashboard': (context) => HomeScreen(patientData: patientData!),
+      },
       onGenerateRoute: (settings) {
         if (settings.name == '/success') {
-          final patientData = settings.arguments as Map<String, dynamic>;
-          return MaterialPageRoute(
-            builder: (context) => SuccessScreen(patientData: patientData),
-          );
+          final patientData = settings.arguments as Map<String, dynamic>?;
+          if (patientData != null) {
+            return MaterialPageRoute(
+              builder: (context) => SuccessScreen(patientData: patientData),
+            );
+          }
         } else if (settings.name == '/dashboard') {
-          final patientData = settings.arguments as Map<String, dynamic>;
-          return MaterialPageRoute(
-            builder: (context) => HomeScreen(patientData: patientData),
-          );
+          final patientData = settings.arguments as Map<String, dynamic>?;
+          if (patientData != null) {
+            return MaterialPageRoute(
+              builder: (context) => HomeScreen(patientData: patientData),
+            );
+          }
         }
+
+        // Fallback to login screen if patientData is null for dashboard route
+        if (settings.name == '/dashboard' && patientData == null) {
+          return MaterialPageRoute(builder: (context) => const LoginScreen());
+        }
+
         return null;
       },
     );

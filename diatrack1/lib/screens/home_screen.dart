@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/supabase_service.dart';
 import 'add_metrics_screen.dart';
 import 'login_screen.dart';
@@ -31,7 +32,9 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  void _logout() {
+  void _logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (context) => const LoginScreen()),
@@ -93,7 +96,10 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 12),
               Text(
                 'Taken last: $date',
-                style: const TextStyle(fontSize: 12, color: Colors.grey),
+                style: const TextStyle(
+                  fontSize: 18,
+                  color: Color.fromARGB(255, 63, 62, 62),
+                ),
               ),
             ],
           ),
