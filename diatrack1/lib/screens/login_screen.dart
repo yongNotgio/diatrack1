@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import '../services/supabase_service.dart';
-import 'home_screen.dart'; // Navigate to home on success
-import 'signup_screen.dart'; // Navigate to signup
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -17,6 +15,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _supabaseService = SupabaseService();
   bool _isLoading = false;
   String? _errorMessage;
+  bool _is18AndAgree = false;
 
   @override
   void dispose() {
@@ -26,8 +25,8 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _login() async {
-    if (!_formKey.currentState!.validate()) {
-      return; // Don't proceed if form is invalid
+    if (!_formKey.currentState!.validate() || !_is18AndAgree) {
+      return;
     }
 
     setState(() {
@@ -38,19 +37,16 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       final patientData = await _supabaseService.loginPatient(
         email: _emailController.text.trim(),
-        password: _passwordController.text, // Pass password directly
+        password: _passwordController.text,
       );
 
       if (patientData != null && mounted) {
-        // Navigate to HomeScreen on successful login
-        Navigator.pushReplacement(
+        Navigator.pushReplacementNamed(
           context,
-          MaterialPageRoute(
-            builder: (context) => HomeScreen(patientData: patientData),
-          ),
+          '/success',
+          arguments: patientData,
         );
       } else if (mounted) {
-        // Should be caught by the exception, but as a fallback
         setState(() {
           _errorMessage = 'Login failed. Please check your credentials.';
         });
@@ -58,10 +54,7 @@ class _LoginScreenState extends State<LoginScreen> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _errorMessage = e.toString().replaceFirst(
-            'Exception: ',
-            '',
-          ); // Show error message
+          _errorMessage = e.toString().replaceFirst('Exception: ', '');
         });
       }
     } finally {
@@ -75,100 +68,123 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final primaryBlue = const Color(0xFF1DA1F2);
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Patient Login'), centerTitle: true),
+      backgroundColor: Colors.white,
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
           child: Form(
             key: _formKey,
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
                 const Text(
-                  'Welcome Back!',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  'Sign In to Your\nDiaTrack Account',
+                  style: TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1DA1F2),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Enter your details to proceed further',
+                  style: TextStyle(fontSize: 14, color: Colors.grey),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 30),
 
-                // Email Field
+                const Text(
+                  'Username or Email',
+                  style: TextStyle(fontWeight: FontWeight.w500),
+                ),
+                const SizedBox(height: 8),
                 TextFormField(
                   controller: _emailController,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    prefixIcon: Icon(Icons.email),
+                  decoration: InputDecoration(
+                    hintText: 'Enter your username or email',
+                    filled: true,
+                    fillColor: Colors.grey[200],
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (value) {
-                    if (value == null ||
-                        value.isEmpty ||
-                        !value.contains('@')) {
-                      return 'Please enter a valid email';
-                    }
-                    return null;
-                  },
+                  validator:
+                      (value) =>
+                          (value == null ||
+                                  value.isEmpty ||
+                                  !value.contains('@'))
+                              ? 'Please enter a valid email'
+                              : null,
                 ),
                 const SizedBox(height: 16),
 
-                // Password Field
+                const Text(
+                  'Password',
+                  style: TextStyle(fontWeight: FontWeight.w500),
+                ),
+                const SizedBox(height: 8),
                 TextFormField(
                   controller: _passwordController,
-                  decoration: const InputDecoration(
-                    labelText: 'Password',
-                    prefixIcon: Icon(Icons.lock),
+                  decoration: InputDecoration(
+                    hintText: 'Enter your password',
+                    filled: true,
+                    fillColor: Colors.grey[200],
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
                   obscureText: true,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your password';
-                    }
-                    return null;
-                  },
+                  validator:
+                      (value) =>
+                          (value == null || value.isEmpty)
+                              ? 'Please enter your password'
+                              : null,
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
 
-                // Error Message Display
+                CheckboxListTile(
+                  title: const Text(
+                    'I declare that I am at least 18 years old and agree to the Privacy Policy.',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                  value: _is18AndAgree,
+                  onChanged:
+                      (value) => setState(() => _is18AndAgree = value ?? false),
+                  activeColor: primaryBlue,
+                  contentPadding: EdgeInsets.zero,
+                ),
+
                 if (_errorMessage != null)
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 16.0),
+                    padding: const EdgeInsets.only(bottom: 12.0),
                     child: Text(
                       _errorMessage!,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.error,
-                      ),
+                      style: const TextStyle(color: Colors.red),
                       textAlign: TextAlign.center,
                     ),
                   ),
 
-                // Login Button
                 _isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : ElevatedButton(
-                      onPressed: _login,
-                      child: const Text('Login'),
-                    ),
-                const SizedBox(height: 16),
-
-                // Sign Up Navigation
-                TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const SignUpScreen(),
+                      onPressed: _is18AndAgree ? _login : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primaryBlue,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
-                    );
-                  },
-                  child: const Text('Don\'t have an account? Sign Up'),
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'For demonstration purposes only.',
-                  style: TextStyle(color: Colors.orange, fontSize: 12),
-                  textAlign: TextAlign.center,
-                ),
+                      child: const Text(
+                        'Login',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    ),
               ],
             ),
           ),

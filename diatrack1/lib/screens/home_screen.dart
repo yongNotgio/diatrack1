@@ -39,29 +39,67 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  String _formatDateTime(String? isoString) {
+  String _formatDate(String? isoString) {
     if (isoString == null) return 'N/A';
     try {
       final dateTime = DateTime.parse(isoString).toLocal();
-      return DateFormat('MMM d, yyyy - hh:mm a').format(dateTime);
+      return DateFormat('MMMM d, yyyy').format(dateTime);
     } catch (e) {
       return 'Invalid Date';
     }
   }
 
-  Future<void> _editLog(Map<String, dynamic> metric) async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder:
-            (context) =>
-                AddMetricsScreen(patientId: _patientId, existingMetric: metric),
+  Widget _buildFullWidthCard(
+    String title,
+    String value,
+    String unit,
+    String date,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    value,
+                    style: const TextStyle(
+                      fontSize: 42,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    unit,
+                    style: const TextStyle(fontSize: 16, color: Colors.grey),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Taken last: $date',
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+            ],
+          ),
+        ),
       ),
     );
-
-    if (result == true) {
-      _loadMetrics();
-    }
   }
 
   @override
@@ -82,161 +120,192 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: RefreshIndicator(
         onRefresh: () async => _loadMetrics(),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              // Medications Card - Added at the top
-              if (widget.patientData['medication'] != null &&
-                  (widget.patientData['medication'] as String).isNotEmpty)
-                Card(
-                  margin: const EdgeInsets.all(8.0),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Current Medications',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          widget.patientData['medication'] as String,
-                          style: const TextStyle(fontSize: 16),
-                        ),
-                      ],
-                    ),
+        child: FutureBuilder<List<Map<String, dynamic>>>(
+          future: _metricsFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (snapshot.hasError) {
+              return Center(
+                child: Text('Error loading metrics: ${snapshot.error}'),
+              );
+            }
+            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Text(
+                    'No health metrics recorded yet.\nTap the + button to add your first entry!',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
                   ),
                 ),
+              );
+            }
 
-              // Metrics List
-              FutureBuilder<List<Map<String, dynamic>>>(
-                future: _metricsFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  if (snapshot.hasError) {
-                    return Center(
-                      child: Text('Error loading metrics: ${snapshot.error}'),
-                    );
-                  }
-                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(
-                      child: Text(
-                        'No health metrics recorded yet.\nTap the + button to add your first entry!',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 16, color: Colors.grey),
-                      ),
-                    );
-                  }
+            final metric = snapshot.data!.first; // only the latest entry
+            final date = _formatDate(metric['submission_date'] as String?);
 
-                  final metrics = snapshot.data!;
-
-                  return ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    padding: const EdgeInsets.all(8.0),
-                    itemCount: metrics.length,
-                    itemBuilder: (context, index) {
-                      final metric = metrics[index];
-                      return Card(
-                        margin: const EdgeInsets.symmetric(vertical: 8.0),
-                        elevation: 2.0,
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(12.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (widget.patientData['medication'] != null &&
+                      (widget.patientData['medication'] as String).isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Card(
+                        elevation: 3,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10.0),
+                          borderRadius: BorderRadius.circular(16),
                         ),
                         child: Padding(
-                          padding: const EdgeInsets.all(16.0),
+                          padding: const EdgeInsets.all(20.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'Log Entry - ${_formatDateTime(metric['submission_date'] as String?)}',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  Row(
-                                    children: [
-                                      IconButton(
-                                        icon: const Icon(Icons.edit, size: 20),
-                                        color: Colors.blue,
-                                        onPressed: () => _editLog(metric),
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                              const Text(
+                                'Current Medications',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 20,
+                                ),
                               ),
-                              const SizedBox(height: 8),
-                              if (metric['blood_glucose'] != null)
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 4.0),
-                                  child: Text(
-                                    'Blood Glucose: ${metric['blood_glucose']} mg/dL',
-                                  ),
-                                ),
-                              if (metric['bp_systolic'] != null &&
-                                  metric['bp_diastolic'] != null)
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 4.0),
-                                  child: Text(
-                                    'Blood Pressure: ${metric['bp_systolic']} / ${metric['bp_diastolic']} mmHg',
-                                  ),
-                                ),
-                              if (metric['pulse_rate'] != null)
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 4.0),
-                                  child: Text(
-                                    'Pulse Rate: ${metric['pulse_rate']} bpm',
-                                  ),
-                                ),
-                              if (metric['notes'] != null &&
-                                  (metric['notes'] as String).isNotEmpty)
-                                Padding(
-                                  padding: const EdgeInsets.only(
-                                    top: 4.0,
-                                    bottom: 4.0,
-                                  ),
-                                  child: Text('Notes: ${metric['notes']}'),
-                                ),
-                              if (metric['wound_photo_url'] != null)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 8.0),
-                                  child: Image.network(
-                                    metric['wound_photo_url']!,
-                                    height: 100,
-                                    width: 100,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              if (metric['food_photo_url'] != null)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 8.0),
-                                  child: Image.network(
-                                    metric['food_photo_url']!,
-                                    height: 100,
-                                    width: 100,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
+                              const SizedBox(height: 12),
+                              Text(
+                                widget.patientData['medication'] as String,
+                                style: const TextStyle(fontSize: 16),
+                              ),
                             ],
                           ),
                         ),
-                      );
-                    },
-                  );
-                },
+                      ),
+                    ),
+
+                  if (metric['blood_glucose'] != null)
+                    _buildFullWidthCard(
+                      'Blood Glucose (Fasting Blood Sugar - FBS)',
+                      metric['blood_glucose'].toString(),
+                      'mmol/L',
+                      date,
+                    ),
+
+                  if (metric['bp_systolic'] != null &&
+                      metric['bp_diastolic'] != null)
+                    _buildFullWidthCard(
+                      'Blood Pressure (Systolic / Diastolic)',
+                      '${metric['bp_systolic']} / ${metric['bp_diastolic']}',
+                      'mmHg',
+                      date,
+                    ),
+
+                  if (metric['pulse_rate'] != null)
+                    _buildFullWidthCard(
+                      'Pulse Rate',
+                      metric['pulse_rate'].toString(),
+                      'bpm',
+                      date,
+                    ),
+
+                  if (metric['notes'] != null &&
+                      (metric['notes'] as String).isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Card(
+                        elevation: 3,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Patient Notes',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 20,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                metric['notes'],
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+
+                  if (metric['wound_photo_url'] != null)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Card(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            const Padding(
+                              padding: EdgeInsets.all(12.0),
+                              child: Text(
+                                'Wound Photo',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 20,
+                                ),
+                              ),
+                            ),
+                            Image.network(
+                              metric['wound_photo_url']!,
+                              height: 200,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                  if (metric['food_photo_url'] != null)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Card(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            const Padding(
+                              padding: EdgeInsets.all(12.0),
+                              child: Text(
+                                'Meal Photo',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 20,
+                                ),
+                              ),
+                            ),
+                            Image.network(
+                              metric['food_photo_url']!,
+                              height: 200,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         ),
       ),
       floatingActionButton: FloatingActionButton(

@@ -1,21 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'screens/login_screen.dart';
+import 'screens/success_screen.dart';
+import 'screens/home_screen.dart';
 
 const String supabaseUrl = 'https://wvpjwsectrwohraolniu.supabase.co';
 const String supabaseAnonKey =
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2cGp3c2VjdHJ3b2hyYW9sbml1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM2MDgzNjQsImV4cCI6MjA1OTE4NDM2NH0.4DAp0jYwzqdPkjeGbvCl-KkhvQh_wBKKU_RvjQY0urU';
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized(); // Required for Supabase init
-
-  // Initialize Supabase
+  WidgetsFlutterBinding.ensureInitialized();
   await Supabase.initialize(url: supabaseUrl, anonKey: supabaseAnonKey);
 
   runApp(const MyApp());
 }
 
-// Get a reference to the Supabase client throughout the app
 final supabase = Supabase.instance.client;
 
 class MyApp extends StatelessWidget {
@@ -47,7 +46,22 @@ class MyApp extends StatelessWidget {
         ),
       ),
       debugShowCheckedModeBanner: false,
-      home: const LoginScreen(), // Start with the Login Screen
+      initialRoute: '/',
+      routes: {'/': (context) => const LoginScreen()},
+      onGenerateRoute: (settings) {
+        if (settings.name == '/success') {
+          final patientData = settings.arguments as Map<String, dynamic>;
+          return MaterialPageRoute(
+            builder: (context) => SuccessScreen(patientData: patientData),
+          );
+        } else if (settings.name == '/dashboard') {
+          final patientData = settings.arguments as Map<String, dynamic>;
+          return MaterialPageRoute(
+            builder: (context) => HomeScreen(patientData: patientData),
+          );
+        }
+        return null;
+      },
     );
   }
 }
