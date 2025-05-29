@@ -147,6 +147,38 @@ class SupabaseService {
   //     throw Exception('Failed to delete health metric: ${e.toString()}');
   //   }
   // }
+  Future<Map<String, dynamic>?> getUpcomingAppointment(String patientId) async {
+    final response =
+        await supabase
+            .from('appointments')
+            .select(
+              'appointment_datetime, doctor:doctor_id(first_name, last_name)',
+            )
+            .eq('patient_id', patientId)
+            .gte('appointment_datetime', DateTime.now().toIso8601String())
+            .order('appointment_datetime', ascending: true)
+            .limit(1)
+            .maybeSingle();
+
+    if (response == null || response.isEmpty) {
+      return null;
+    }
+
+    final appointmentDatetime = response['appointment_datetime'];
+    final doctor = response['doctor'];
+
+    String doctorName = 'Unknown Doctor';
+    if (doctor != null &&
+        doctor['first_name'] != null &&
+        doctor['last_name'] != null) {
+      doctorName = '${doctor['first_name']} ${doctor['last_name']}';
+    }
+
+    return {
+      'appointment_datetime': appointmentDatetime,
+      'doctor_name': doctorName,
+    };
+  }
 
   Future<XFile?> pickImage(ImageSource source) async {
     try {

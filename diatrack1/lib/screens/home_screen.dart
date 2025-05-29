@@ -17,6 +17,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final SupabaseService _supabaseService = SupabaseService();
   late Future<List<Map<String, dynamic>>> _metricsFuture;
+  late Future<Map<String, dynamic>?> _appointmentFuture;
   late String _patientId;
 
   @override
@@ -24,11 +25,18 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _patientId = widget.patientData['patient_id'] as String;
     _loadMetrics();
+    _loadAppointment();
   }
 
   void _loadMetrics() {
     setState(() {
       _metricsFuture = _supabaseService.getHealthMetrics(_patientId);
+    });
+  }
+
+  void _loadAppointment() {
+    setState(() {
+      _appointmentFuture = _supabaseService.getUpcomingAppointment(_patientId);
     });
   }
 
@@ -46,7 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (isoString == null) return 'N/A';
     try {
       final dateTime = DateTime.parse(isoString).toLocal();
-      return DateFormat('MMMM d, yyyy').format(dateTime);
+      return DateFormat('MMMM d, yyyy hh:mm a').format(dateTime);
     } catch (e) {
       return 'Invalid Date';
     }
@@ -125,7 +133,10 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: () async => _loadMetrics(),
+        onRefresh: () async {
+          _loadMetrics();
+          _loadAppointment();
+        },
         child: FutureBuilder<List<Map<String, dynamic>>>(
           future: _metricsFuture,
           builder: (context, snapshot) {
@@ -150,7 +161,7 @@ class _HomeScreenState extends State<HomeScreen> {
               );
             }
 
-            final metric = snapshot.data!.first; // only the latest entry
+            final metric = snapshot.data!.first;
             final date = _formatDate(metric['submission_date'] as String?);
 
             return SingleChildScrollView(
@@ -158,37 +169,80 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  if (widget.patientData['medication'] != null &&
-                      (widget.patientData['medication'] as String).isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Card(
-                        elevation: 3,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(20.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Current Medications',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 20,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                widget.patientData['medication'] as String,
-                                style: const TextStyle(fontSize: 16),
-                              ),
-                            ],
+                  // UPCOMING APPOINTMENT CARD
+                  FutureBuilder<Map<String, dynamic>?>(
+                    future: _appointmentFuture,
+                    builder: (context, apptSnapshot) {
+                      String content;
+                      if (apptSnapshot.connectionState ==
+                          ConnectionState.waiting) {
+                        content = 'Loading upcoming appointments...';
+                      } else if (apptSnapshot.hasError) {
+                        content = 'Error loading appointments.';
+                      } else if (!apptSnapshot.hasData ||
+                          apptSnapshot.data == null) {
+                        content = 'No upcoming appointments.';
+                      } else {
+                        final appt = apptSnapshot.data!;
+                        content =
+                            'Next Appointment:\n${_formatDate(appt['appointment_datetime'])}\nwith Dr. ${appt['doctor_name']}';
+                      }
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: Card(
+                          elevation: 4,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
                           ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(20.0),
+                            child: Text(
+                              content,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+
+                  // MEDICATION CARD (fixed fallback)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Card(
+                      elevation: 3,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Current Medications',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 20,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              (widget.patientData['medication'] as String?)
+                                          ?.isNotEmpty ==
+                                      true
+                                  ? widget.patientData['medication'] as String
+                                  : 'No current medications.',
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                          ],
                         ),
                       ),
                     ),
+                  ),
 
                   if (metric['blood_glucose'] != null)
                     _buildFullWidthCard(
