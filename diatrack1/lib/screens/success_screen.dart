@@ -28,7 +28,7 @@ class SuccessScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               const Text(
-                'Your account has been successfully created.',
+                'Your have successfully logged in.',
                 style: TextStyle(fontSize: 14, color: Colors.grey),
                 textAlign: TextAlign.center,
               ),
