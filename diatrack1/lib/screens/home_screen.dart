@@ -53,7 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String _formatDate(String? isoString) {
     if (isoString == null) return 'N/A';
     try {
-      final dateTime = DateTime.parse(isoString).toLocal();
+      final dateTime = DateTime.parse(isoString);
       return DateFormat('MMMM d, yyyy hh:mm a').format(dateTime);
     } catch (e) {
       return 'Invalid Date';
