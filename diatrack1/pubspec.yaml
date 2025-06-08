@@ -55,6 +55,13 @@ flutter:
   assets:
     - assets/images/diatrack_logo.png
     - assets/images/diatrack_doctor.png
+    - assets/images/diatrack_logo.png
+    - assets/images/doctor.png
+    - assets/images/avatar.png
+    - assets/images/medicine.png
+    - assets/images/history.png
+    - assets/images/reminder.png
+    - assets/images/salad.png
 
 
   # The following line ensures that the Material Icons font is
