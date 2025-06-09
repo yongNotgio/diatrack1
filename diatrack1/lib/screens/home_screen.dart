@@ -42,12 +42,20 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _logout() async {
     final prefs = await SharedPreferences.getInstance();
+    // Explicitly remove specific keys
+    await prefs.remove('patient_id');
+    await prefs.remove('first_name');
+    await prefs.remove('last_name');
+    // Clear any remaining data
     await prefs.clear();
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (context) => const LoginScreen()),
-      (Route<dynamic> route) => false,
-    );
+
+    if (mounted) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+        (Route<dynamic> route) => false,
+      );
+    }
   }
 
   String _formatDate(String? isoString) {
