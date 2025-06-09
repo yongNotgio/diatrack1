@@ -66,8 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
         "${widget.patientData['first_name'] ?? ''} ${widget.patientData['last_name'] ?? ''}";
     final String diagnosis =
         widget.patientData['diagnosis'] ?? 'Type II - Diabetes';
-    final String surgeryStatus =
-        widget.patientData['surgical_status'] ?? 'Post-Op';
+    final String surgeryStatus = widget.patientData['phase'] ?? 'Not Found';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFF),
@@ -205,7 +204,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     padding: const EdgeInsets.all(20),
                     child: Row(
                       children: [
-                        Image.asset('assets/images/doctor.png', height: 60),
+                        Image.asset('assets/images/doctor.png', height: 80),
                         const SizedBox(width: 16),
                         Expanded(
                           child: Column(
@@ -220,7 +219,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                               Text(
                                 widget.patientData['doctor_name'] ??
-                                    'Dr. Esteban Evan Contreras',
+                                    'Doctor Not Found',
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
@@ -432,7 +431,11 @@ class _HomeScreenState extends State<HomeScreen> {
                           value2: '',
                           unit: '',
                           taken: date,
-                          status: 'LOW',
+                          status:
+                              widget.patientData['risk_classification']
+                                  ?.toString()
+                                  .toUpperCase() ??
+                              'N/A',
                           isRisk: true,
                         ),
                       ] else
