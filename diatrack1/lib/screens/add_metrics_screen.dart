@@ -180,150 +180,226 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
-              TextFormField(
-                controller: _glucoseController,
-                decoration: const InputDecoration(
-                  labelText: 'Blood Glucose (mg/dL)',
-                  prefixIcon: Icon(Icons.opacity),
-                ),
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,1}')),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Row(
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _systolicController,
-                      decoration: const InputDecoration(
-                        labelText: 'BP Systolic (mmHg)',
-                        prefixIcon: Icon(Icons.favorite_border),
-                      ),
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _diastolicController,
-                      decoration: const InputDecoration(
-                        labelText: 'BP Diastolic (mmHg)',
-                        prefixIcon: Icon(Icons.favorite),
-                      ),
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'Wound Photo (Optional)',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  ElevatedButton.icon(
-                    icon: const Icon(Icons.camera_alt),
-                    label: const Text('Upload Wound Photo'),
-                    onPressed: _showImagePickerOptions,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blueGrey[50],
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  if (_woundImageFile != null || _woundPhotoUrl != null)
-                    Expanded(
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.check_circle,
-                            color: Colors.green,
-                            size: 18,
-                          ),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              _woundImageFile?.name ?? 'Existing photo',
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                          ),
-                          IconButton(
-                            icon: const Icon(
-                              Icons.clear,
-                              size: 18,
-                              color: Colors.redAccent,
-                            ),
-                            onPressed:
-                                () => setState(() {
-                                  _woundImageFile = null;
-                                  _woundPhotoUrl = null;
-                                }),
-                            tooltip: 'Remove image',
-                          ),
-                        ],
-                      ),
-                    ),
-                ],
-              ),
-              if (_woundImageFile != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: Image.file(
-                    File(_woundImageFile!.path),
-                    height: 100,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              if (_woundPhotoUrl != null && _woundImageFile == null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: Image.network(
-                    _woundPhotoUrl!,
-                    height: 100,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              const SizedBox(height: 24),
-              TextFormField(
-                controller: _notesController,
-                decoration: const InputDecoration(
-                  labelText: 'Notes (Optional)',
-                  hintText: 'Any additional details...',
-                  prefixIcon: Icon(Icons.notes),
-                  alignLabelWithHint: true,
-                ),
-                maxLines: 3,
-              ),
-              const SizedBox(height: 30),
-              if (_uploadError != null)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 16.0),
-                  child: Text(
-                    _uploadError!,
+                  const Text(
+                    'Blood Pressure',
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.error,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              _isUploading
-                  ? const Center(child: CircularProgressIndicator())
-                  : ElevatedButton.icon(
-                    icon: const Icon(Icons.save),
-                    label: const Text('Save Log'),
-                    onPressed: _submitMetrics,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 15.0),
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue,
                     ),
                   ),
+                  const Text(
+                    'Log your blood pressure to keep your doctor updated.',
+                    style: TextStyle(fontSize: 14, color: Colors.blueGrey),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: _systolicController,
+                          decoration: InputDecoration(
+                            labelText: 'Systolic (mmHg)',
+                            labelStyle: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blueGrey,
+                            ),
+                            prefixIcon: const Icon(
+                              Icons.favorite_border,
+                              color: Colors.blue,
+                            ),
+                            filled: true,
+                            fillColor: Colors.blueGrey[50],
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: TextFormField(
+                          controller: _diastolicController,
+                          decoration: InputDecoration(
+                            labelText: 'Diastolic (mmHg)',
+                            labelStyle: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blueGrey,
+                            ),
+                            prefixIcon: const Icon(
+                              Icons.favorite,
+                              color: Colors.blue,
+                            ),
+                            filled: true,
+                            fillColor: Colors.blueGrey[50],
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Blood Glucose',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue,
+                    ),
+                  ),
+                  const Text(
+                    'Log your fasting blood sugar to keep your doctor updated.',
+                    style: TextStyle(fontSize: 14, color: Colors.blueGrey),
+                  ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _glucoseController,
+                    decoration: const InputDecoration(
+                      labelText: 'Blood Glucose (mg/dL)',
+                      prefixIcon: Icon(Icons.opacity),
+                    ),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(
+                        RegExp(r'^\d+\.?\d{0,1}'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Upload Wound Photo',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue,
+                    ),
+                  ),
+                  const Text(
+                    'Please attach a wound image to update your doctor on its progress.',
+                    style: TextStyle(fontSize: 14, color: Colors.blueGrey),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      ElevatedButton.icon(
+                        icon: const Icon(Icons.camera_alt),
+                        label: const Text('Click to Upload'),
+                        onPressed: _showImagePickerOptions,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blueGrey[50],
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      if (_woundImageFile != null || _woundPhotoUrl != null)
+                        Expanded(
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.check_circle,
+                                color: Colors.green,
+                                size: 18,
+                              ),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: Text(
+                                  _woundImageFile?.name ?? 'Existing photo',
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.clear,
+                                  size: 18,
+                                  color: Colors.redAccent,
+                                ),
+                                onPressed:
+                                    () => setState(() {
+                                      _woundImageFile = null;
+                                      _woundPhotoUrl = null;
+                                    }),
+                                tooltip: 'Remove image',
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                  if (_woundImageFile != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Image.file(
+                        File(_woundImageFile!.path),
+                        height: 100,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  if (_woundPhotoUrl != null && _woundImageFile == null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Image.network(
+                        _woundPhotoUrl!,
+                        height: 100,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  const SizedBox(height: 24),
+                  TextFormField(
+                    controller: _notesController,
+                    decoration: const InputDecoration(
+                      labelText: 'Notes (Optional)',
+                      hintText: 'Any additional details...',
+                      prefixIcon: Icon(Icons.notes),
+                      alignLabelWithHint: true,
+                    ),
+                    maxLines: 3,
+                  ),
+                  const SizedBox(height: 30),
+                  if (_uploadError != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 16.0),
+                      child: Text(
+                        _uploadError!,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  _isUploading
+                      ? const Center(child: CircularProgressIndicator())
+                      : SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          icon: const Icon(Icons.save),
+                          label: const Text('Save Log'),
+                          onPressed: _submitMetrics,
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 15.0),
+                          ),
+                        ),
+                      ),
+                ],
+              ),
             ],
           ),
         ),
