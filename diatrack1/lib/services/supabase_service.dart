@@ -52,10 +52,23 @@ class SupabaseService {
       final response =
           await supabase
               .from('patients')
-              .select()
+              .select('''
+            *,
+            doctor:preferred_doctor_id (
+              first_name,
+              last_name
+            )
+          ''')
               .eq('email', email.trim().toLowerCase())
               .eq('password', password)
               .single();
+
+      // Add doctor name to patient data
+      if (response != null && response['doctor'] != null) {
+        response['doctor_name'] =
+            '${response['doctor']['first_name']} ${response['doctor']['last_name']}';
+      }
+
       return response;
     } on PostgrestException catch (error) {
       if (error.code == 'PGRST116') {
