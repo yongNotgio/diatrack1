@@ -25,13 +25,10 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
   final _glucoseController = TextEditingController();
   final _systolicController = TextEditingController();
   final _diastolicController = TextEditingController();
-  final _pulseController = TextEditingController();
   final _notesController = TextEditingController();
 
   XFile? _woundImageFile;
-  XFile? _foodImageFile;
   String? _woundPhotoUrl;
-  String? _foodPhotoUrl;
   bool _isUploading = false;
   String? _uploadError;
 
@@ -48,38 +45,21 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
     _glucoseController.text = metric['blood_glucose']?.toString() ?? '';
     _systolicController.text = metric['bp_systolic']?.toString() ?? '';
     _diastolicController.text = metric['bp_diastolic']?.toString() ?? '';
-    _pulseController.text = metric['pulse_rate']?.toString() ?? '';
     _notesController.text = metric['notes']?.toString() ?? '';
     _woundPhotoUrl = metric['wound_photo_url']?.toString();
-    _foodPhotoUrl = metric['food_photo_url']?.toString();
   }
 
-  @override
-  void dispose() {
-    _glucoseController.dispose();
-    _systolicController.dispose();
-    _diastolicController.dispose();
-    _pulseController.dispose();
-    _notesController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _pickImage(ImageSource source, bool isWoundPhoto) async {
+  Future<void> _pickImage(ImageSource source) async {
     final XFile? pickedFile = await _supabaseService.pickImage(source);
     if (pickedFile != null) {
       setState(() {
-        if (isWoundPhoto) {
-          _woundImageFile = pickedFile;
-          _woundPhotoUrl = null;
-        } else {
-          _foodImageFile = pickedFile;
-          _foodPhotoUrl = null;
-        }
+        _woundImageFile = pickedFile;
+        _woundPhotoUrl = null;
       });
     }
   }
 
-  void _showImagePickerOptions(bool isWoundPhoto) {
+  void _showImagePickerOptions() {
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
@@ -90,7 +70,7 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
                 leading: const Icon(Icons.photo_library),
                 title: const Text('Photo Library'),
                 onTap: () {
-                  _pickImage(ImageSource.gallery, isWoundPhoto);
+                  _pickImage(ImageSource.gallery);
                   Navigator.of(context).pop();
                 },
               ),
@@ -98,7 +78,7 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
                 leading: const Icon(Icons.photo_camera),
                 title: const Text('Camera'),
                 onTap: () {
-                  _pickImage(ImageSource.camera, isWoundPhoto);
+                  _pickImage(ImageSource.camera);
                   Navigator.of(context).pop();
                 },
               ),
@@ -129,23 +109,10 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
         _woundPhotoUrl = url;
       }
 
-      if (_foodImageFile != null) {
-        final url = await _supabaseService.uploadImage(
-          _foodImageFile!,
-          'food-photos',
-          widget.patientId,
-        );
-        if (url == null) throw Exception("Food photo upload failed.");
-        _foodPhotoUrl = url;
-      }
-
       if (widget.existingMetric != null) {
         final existing = widget.existingMetric!;
         if (_woundImageFile != null && existing['wound_photo_url'] != null) {
           await _supabaseService.deleteImage(existing['wound_photo_url']!);
-        }
-        if (_foodImageFile != null && existing['food_photo_url'] != null) {
-          await _supabaseService.deleteImage(existing['food_photo_url']!);
         }
       }
 
@@ -154,9 +121,7 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
         bloodGlucose: double.tryParse(_glucoseController.text),
         bpSystolic: int.tryParse(_systolicController.text),
         bpDiastolic: int.tryParse(_diastolicController.text),
-        pulseRate: int.tryParse(_pulseController.text),
         woundPhotoUrl: _woundPhotoUrl,
-        foodPhotoUrl: _foodPhotoUrl,
         notes: _notesController.text.trim(),
         metricId: widget.existingMetric?['id'],
       );
@@ -256,16 +221,6 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _pulseController,
-                decoration: const InputDecoration(
-                  labelText: 'Pulse Rate (bpm)',
-                  prefixIcon: Icon(Icons.monitor_heart),
-                ),
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              ),
               const SizedBox(height: 24),
               const Text(
                 'Wound Photo (Optional)',
@@ -277,7 +232,7 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
                   ElevatedButton.icon(
                     icon: const Icon(Icons.camera_alt),
                     label: const Text('Upload Wound Photo'),
-                    onPressed: () => _showImagePickerOptions(true),
+                    onPressed: _showImagePickerOptions,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blueGrey[50],
                     ),
@@ -332,76 +287,6 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
                   padding: const EdgeInsets.only(top: 8.0),
                   child: Image.network(
                     _woundPhotoUrl!,
-                    height: 100,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              const SizedBox(height: 24),
-              const Text(
-                'Food/Diet Photo (Optional)',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  ElevatedButton.icon(
-                    icon: const Icon(Icons.restaurant_menu),
-                    label: const Text('Upload Food Photo'),
-                    onPressed: () => _showImagePickerOptions(false),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange[50],
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  if (_foodImageFile != null || _foodPhotoUrl != null)
-                    Expanded(
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.check_circle,
-                            color: Colors.green,
-                            size: 18,
-                          ),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              _foodImageFile?.name ?? 'Existing photo',
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                          ),
-                          IconButton(
-                            icon: const Icon(
-                              Icons.clear,
-                              size: 18,
-                              color: Colors.redAccent,
-                            ),
-                            onPressed:
-                                () => setState(() {
-                                  _foodImageFile = null;
-                                  _foodPhotoUrl = null;
-                                }),
-                            tooltip: 'Remove image',
-                          ),
-                        ],
-                      ),
-                    ),
-                ],
-              ),
-              if (_foodImageFile != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: Image.file(
-                    File(_foodImageFile!.path),
-                    height: 100,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              if (_foodPhotoUrl != null && _foodImageFile == null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: Image.network(
-                    _foodPhotoUrl!,
                     height: 100,
                     fit: BoxFit.cover,
                   ),
