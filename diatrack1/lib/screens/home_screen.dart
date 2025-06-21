@@ -350,6 +350,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                   builder:
                                       (context) => AddMetricsScreen(
                                         patientId: _patientId,
+                                        phase:
+                                            widget
+                                                .patientData['phase'], // Pass phase here
                                       ),
                                 ),
                               );

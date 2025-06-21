@@ -7,11 +7,13 @@ import '../services/supabase_service.dart';
 class AddMetricsScreen extends StatefulWidget {
   final String patientId;
   final Map<String, dynamic>? existingMetric;
+  final String? phase; // Add this line
 
   const AddMetricsScreen({
     super.key,
     required this.patientId,
     this.existingMetric,
+    this.phase, // Add this line
   });
 
   @override
@@ -285,83 +287,85 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  const Text(
-                    'Upload Wound Photo',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue,
-                    ),
-                  ),
-                  const Text(
-                    'Please attach a wound image to update your doctor on its progress.',
-                    style: TextStyle(fontSize: 14, color: Colors.blueGrey),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      ElevatedButton.icon(
-                        icon: const Icon(Icons.camera_alt),
-                        label: const Text('Click to Upload'),
-                        onPressed: _showImagePickerOptions,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blueGrey[50],
-                        ),
+                  if (widget.phase == "Post-Operative") ...[
+                    const Text(
+                      'Upload Wound Photo',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
                       ),
-                      const SizedBox(width: 16),
-                      if (_woundImageFile != null || _woundPhotoUrl != null)
-                        Expanded(
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.check_circle,
-                                color: Colors.green,
-                                size: 18,
-                              ),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                child: Text(
-                                  _woundImageFile?.name ?? 'Existing photo',
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(fontSize: 12),
-                                ),
-                              ),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.clear,
-                                  size: 18,
-                                  color: Colors.redAccent,
-                                ),
-                                onPressed:
-                                    () => setState(() {
-                                      _woundImageFile = null;
-                                      _woundPhotoUrl = null;
-                                    }),
-                                tooltip: 'Remove image',
-                              ),
-                            ],
+                    ),
+                    const Text(
+                      'Please attach a wound image to update your doctor on its progress.',
+                      style: TextStyle(fontSize: 14, color: Colors.blueGrey),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        ElevatedButton.icon(
+                          icon: const Icon(Icons.camera_alt),
+                          label: const Text('Click to Upload'),
+                          onPressed: _showImagePickerOptions,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blueGrey[50],
                           ),
                         ),
-                    ],
-                  ),
-                  if (_woundImageFile != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8.0),
-                      child: Image.file(
-                        File(_woundImageFile!.path),
-                        height: 100,
-                        fit: BoxFit.cover,
-                      ),
+                        const SizedBox(width: 16),
+                        if (_woundImageFile != null || _woundPhotoUrl != null)
+                          Expanded(
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.check_circle,
+                                  color: Colors.green,
+                                  size: 18,
+                                ),
+                                const SizedBox(width: 4),
+                                Expanded(
+                                  child: Text(
+                                    _woundImageFile?.name ?? 'Existing photo',
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(fontSize: 12),
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.clear,
+                                    size: 18,
+                                    color: Colors.redAccent,
+                                  ),
+                                  onPressed:
+                                      () => setState(() {
+                                        _woundImageFile = null;
+                                        _woundPhotoUrl = null;
+                                      }),
+                                  tooltip: 'Remove image',
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
                     ),
-                  if (_woundPhotoUrl != null && _woundImageFile == null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8.0),
-                      child: Image.network(
-                        _woundPhotoUrl!,
-                        height: 100,
-                        fit: BoxFit.cover,
+                    if (_woundImageFile != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Image.file(
+                          File(_woundImageFile!.path),
+                          height: 100,
+                          fit: BoxFit.cover,
+                        ),
                       ),
-                    ),
+                    if (_woundPhotoUrl != null && _woundImageFile == null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Image.network(
+                          _woundPhotoUrl!,
+                          height: 100,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                  ],
                   const SizedBox(height: 24),
                   TextFormField(
                     controller: _notesController,
