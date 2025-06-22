@@ -163,11 +163,31 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          widget.existingMetric == null
-              ? 'Add New Health Log'
-              : 'Edit Health Log',
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: Row(
+          children: [
+            Image.asset('assets/images/diatrack_logo.png', height: 32),
+            const SizedBox(width: 8),
+            Text(
+              widget.existingMetric == null ? '' : '',
+              style: const TextStyle(
+                color: Color(0xFF1DA1F2),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.notifications_none,
+              color: Color(0xFF1DA1F2),
+            ),
+            onPressed: () {},
+          ),
+        ],
+        iconTheme: const IconThemeData(color: Color(0xFF1DA1F2)),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
