@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../services/supabase_service.dart';
 import 'add_metrics_screen.dart';
 import 'login_screen.dart';
+import './medication.dart';
 
 class HomeScreen extends StatefulWidget {
   final Map<String, dynamic> patientData;
@@ -85,6 +86,14 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         actions: [
           IconButton(
+            icon: const Icon(Icons.refresh, color: Color(0xFF1DA1F2)),
+            tooltip: 'Refresh',
+            onPressed: () {
+              _loadMetrics();
+              _loadAppointment();
+            },
+          ),
+          IconButton(
             icon: const Icon(
               Icons.notifications_none,
               color: Color(0xFF1DA1F2),
@@ -110,422 +119,452 @@ class _HomeScreenState extends State<HomeScreen> {
                   ? _formatDate(metric['submission_date'] as String?)
                   : DateFormat('MMMM d, yyyy').format(DateTime.now());
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Welcome & Profile
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Welcome',
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 18,
-                              ),
-                            ),
-                            Text(
-                              patientName,
-                              style: const TextStyle(
-                                color: Color(0xFF1DA1F2),
-                                fontWeight: FontWeight.bold,
-                                fontSize: 28,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFFFE2E2),
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  child: Text(
-                                    diagnosis.toUpperCase(),
-                                    style: const TextStyle(
-                                      color: Color(0xFFD32F2F),
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFFFE2E2),
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  child: Text(
-                                    surgeryStatus.toUpperCase(),
-                                    style: const TextStyle(
-                                      color: Color(0xFFD32F2F),
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      CircleAvatar(
-                        radius: 28,
-                        backgroundImage: AssetImage('assets/images/avatar.png'),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Attending Physician Card
-                FutureBuilder<Map<String, dynamic>?>(
-                  future: _appointmentFuture,
-                  builder: (context, snapshot) {
-                    String nextCheckup = 'No upcoming appointment';
-                    String nextCheckupTime = '';
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      nextCheckup = 'Loading...';
-                    } else if (snapshot.hasData && snapshot.data != null) {
-                      final appt = snapshot.data!;
-                      if (appt['appointment_datetime'] != null) {
-                        final dt = DateTime.parse(appt['appointment_datetime']);
-                        nextCheckup = DateFormat('MMMM d, yyyy').format(dt);
-                        nextCheckupTime = DateFormat('h:mm a').format(dt);
-                      }
-                    }
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFFB300),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        padding: const EdgeInsets.all(20),
-                        child: Row(
-                          children: [
-                            Image.asset('assets/images/doctor.png', height: 80),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Attending Physician',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                  Text(
-                                    widget.patientData['doctor_name'] ??
-                                        'Doctor Not Found',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 20,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Row(
-                                    children: [
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          const Text(
-                                            'Next Checkup',
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 12,
-                                            ),
-                                          ),
-                                          Text(
-                                            nextCheckup,
-                                            style: const TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(width: 24),
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          const Text(
-                                            'Time',
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 12,
-                                            ),
-                                          ),
-                                          Text(
-                                            nextCheckupTime.isNotEmpty
-                                                ? nextCheckupTime
-                                                : '-',
-                                            style: const TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Add a record card
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF4FC3F7), Color(0xFF1DA1F2)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    padding: const EdgeInsets.all(20),
+          return RefreshIndicator(
+            onRefresh: () async {
+              _loadMetrics();
+              _loadAppointment();
+              await Future.delayed(const Duration(milliseconds: 500));
+            },
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Welcome & Profile
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
                     child: Row(
                       children: [
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(
-                                children: [
-                                  _tag('BP'),
-                                  const SizedBox(width: 4),
-                                  _tag('GLUCOSE'),
-                                  const SizedBox(width: 4),
-                                  _tag('PHOTO'),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                DateFormat('MMMM d').format(DateTime.now()),
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 32,
-                                ),
-                              ),
-                              Text(
-                                '${DateFormat('yyyy').format(DateTime.now())} | ${DateFormat('EEEE').format(DateTime.now())} | ${DateFormat('h:mm a').format(DateTime.now())}',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Ink(
-                          decoration: const ShapeDecoration(
-                            color: Colors.white,
-                            shape: CircleBorder(),
-                          ),
-                          child: IconButton(
-                            icon: const Icon(
-                              Icons.add,
-                              color: Color.fromARGB(255, 255, 255, 255),
-                              size: 32,
-                            ),
-                            onPressed: () async {
-                              final result = await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder:
-                                      (context) => AddMetricsScreen(
-                                        patientId: _patientId,
-                                        phase:
-                                            widget
-                                                .patientData['phase'], // Pass phase here
-                                      ),
-                                ),
-                              );
-                              if (result == true) {
-                                _loadMetrics();
-                              }
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Main Menu
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Main Menu',
-                        style: TextStyle(
-                          color: Color(0xFF1DA1F2),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 22,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          _menuIcon('Medicine', 'assets/images/medicine.png'),
-                          _menuIcon('History', 'assets/images/history.png'),
-                          _menuIcon('Reminders', 'assets/images/reminder.png'),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Latest Health Metric
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Latest Health Metric',
-                        style: TextStyle(
-                          color: Color(0xFF1DA1F2),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 22,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      if (metric != null) ...[
-                        _metricCard(
-                          title: 'Blood Glucose',
-                          value: metric['blood_glucose']?.toString() ?? '--',
-                          unit: 'mg/dL',
-                          tag: 'MOD',
-                          icon: Icons.bloodtype,
-                          taken: date,
-                        ),
-                        _miniMetricCard(
-                          title: 'Blood Pressure',
-                          value: '${metric['bp_systolic'] ?? '--'}',
-                          value2: '${metric['bp_diastolic'] ?? '--'}',
-                          unit: 'mmHg',
-                          taken: date,
-                          status: 'LOW',
-                        ),
-                        _miniMetricCard(
-                          title: 'Risk for Surgery',
-                          value: '',
-                          value2: '',
-                          unit: '',
-                          taken: date,
-                          status:
-                              widget.patientData['risk_classification']
-                                  ?.toString()
-                                  .toUpperCase() ??
-                              'N/A',
-                          isRisk: true,
-                        ),
-                      ] else
-                        const Text(
-                          'No metrics recorded yet.',
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Calorie Tracker
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFFB300),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    padding: const EdgeInsets.all(20),
-                    child: Row(
-                      children: [
-                        Image.asset('assets/images/salad.png', height: 80),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
-                              Text(
-                                'Please log your meal intake',
+                              const Text(
+                                'Welcome',
                                 style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                ),
-                              ),
-                              SizedBox(height: 8),
-                              Text(
-                                'Add a meal:',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey,
                                   fontSize: 18,
                                 ),
                               ),
+                              Text(
+                                patientName,
+                                style: const TextStyle(
+                                  color: Color(0xFF1DA1F2),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 28,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFFFE2E2),
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: Text(
+                                      diagnosis.toUpperCase(),
+                                      style: const TextStyle(
+                                        color: Color(0xFFD32F2F),
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFFFE2E2),
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: Text(
+                                      surgeryStatus.toUpperCase(),
+                                      style: const TextStyle(
+                                        color: Color(0xFFD32F2F),
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ],
                           ),
                         ),
-                        Ink(
-                          decoration: const ShapeDecoration(
-                            color: Colors.white,
-                            shape: CircleBorder(),
-                          ),
-                          child: IconButton(
-                            icon: const Icon(
-                              Icons.add,
-                              color: Color(0xFF1DA1F2),
-                              size: 32,
-                            ),
-                            onPressed: () {
-                              // Add meal logic
-                            },
+                        CircleAvatar(
+                          radius: 28,
+                          backgroundImage: AssetImage(
+                            'assets/images/avatar.png',
                           ),
                         ),
                       ],
                     ),
                   ),
-                ),
-                const SizedBox(height: 32),
-              ],
+                  const SizedBox(height: 16),
+
+                  // Attending Physician Card
+                  FutureBuilder<Map<String, dynamic>?>(
+                    future: _appointmentFuture,
+                    builder: (context, snapshot) {
+                      String nextCheckup = 'No upcoming appointment';
+                      String nextCheckupTime = '';
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        nextCheckup = 'Loading...';
+                      } else if (snapshot.hasData && snapshot.data != null) {
+                        final appt = snapshot.data!;
+                        if (appt['appointment_datetime'] != null) {
+                          final dt = DateTime.parse(
+                            appt['appointment_datetime'],
+                          );
+                          nextCheckup = DateFormat('MMMM d, yyyy').format(dt);
+                          nextCheckupTime = DateFormat('h:mm a').format(dt);
+                        }
+                      }
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFB300),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          padding: const EdgeInsets.all(20),
+                          child: Row(
+                            children: [
+                              Image.asset(
+                                'assets/images/doctor.png',
+                                height: 80,
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Attending Physician',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                    Text(
+                                      widget.patientData['doctor_name'] ??
+                                          'Doctor Not Found',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 20,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      children: [
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            const Text(
+                                              'Next Checkup',
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                            Text(
+                                              nextCheckup,
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 14,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(width: 24),
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            const Text(
+                                              'Time',
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                            Text(
+                                              nextCheckupTime.isNotEmpty
+                                                  ? nextCheckupTime
+                                                  : '-',
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 14,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Add a record card
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF4FC3F7), Color(0xFF1DA1F2)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      padding: const EdgeInsets.all(20),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    _tag('BP'),
+                                    const SizedBox(width: 4),
+                                    _tag('GLUCOSE'),
+                                    const SizedBox(width: 4),
+                                    _tag('PHOTO'),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  DateFormat('MMMM d').format(DateTime.now()),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 32,
+                                  ),
+                                ),
+                                Text(
+                                  '${DateFormat('yyyy').format(DateTime.now())} | ${DateFormat('EEEE').format(DateTime.now())} | ${DateFormat('h:mm a').format(DateTime.now())}',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Ink(
+                            decoration: const ShapeDecoration(
+                              color: Colors.white,
+                              shape: CircleBorder(),
+                            ),
+                            child: IconButton(
+                              icon: const Icon(
+                                Icons.add,
+                                color: Color.fromARGB(255, 255, 255, 255),
+                                size: 32,
+                              ),
+                              onPressed: () async {
+                                final result = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder:
+                                        (context) => AddMetricsScreen(
+                                          patientId: _patientId,
+                                          phase:
+                                              widget
+                                                  .patientData['phase'], // Pass phase here
+                                        ),
+                                  ),
+                                );
+                                if (result == true) {
+                                  _loadMetrics();
+                                }
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Main Menu
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Main Menu',
+                          style: TextStyle(
+                            color: Color(0xFF1DA1F2),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 22,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            _menuIcon(
+                              'Medicine',
+                              'assets/images/medicine.png',
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder:
+                                        (context) => const MedicationScreen(),
+                                  ),
+                                );
+                              },
+                            ),
+                            _menuIcon('History', 'assets/images/history.png'),
+                            _menuIcon(
+                              'Reminders',
+                              'assets/images/reminder.png',
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Latest Health Metric
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Latest Health Metric',
+                          style: TextStyle(
+                            color: Color(0xFF1DA1F2),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 22,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        if (metric != null) ...[
+                          _metricCard(
+                            title: 'Blood Glucose',
+                            value: metric['blood_glucose']?.toString() ?? '--',
+                            unit: 'mg/dL',
+                            tag: 'MOD',
+                            icon: Icons.bloodtype,
+                            taken: date,
+                          ),
+                          _miniMetricCard(
+                            title: 'Blood Pressure',
+                            value: '${metric['bp_systolic'] ?? '--'}',
+                            value2: '${metric['bp_diastolic'] ?? '--'}',
+                            unit: 'mmHg',
+                            taken: date,
+                            status: 'LOW',
+                          ),
+                          _miniMetricCard(
+                            title: 'Risk for Surgery',
+                            value: '',
+                            value2: '',
+                            unit: '',
+                            taken: date,
+                            status:
+                                widget.patientData['risk_classification']
+                                    ?.toString()
+                                    .toUpperCase() ??
+                                'N/A',
+                            isRisk: true,
+                          ),
+                        ] else
+                          const Text(
+                            'No metrics recorded yet.',
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Calorie Tracker
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFB300),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      padding: const EdgeInsets.all(20),
+                      child: Row(
+                        children: [
+                          Image.asset('assets/images/salad.png', height: 80),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: const [
+                                Text(
+                                  'Please log your meal intake',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  'Add a meal:',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Ink(
+                            decoration: const ShapeDecoration(
+                              color: Colors.white,
+                              shape: CircleBorder(),
+                            ),
+                            child: IconButton(
+                              icon: const Icon(
+                                Icons.add,
+                                color: Color(0xFF1DA1F2),
+                                size: 32,
+                              ),
+                              onPressed: () {
+                                // Add meal logic
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                ],
+              ),
             ),
           );
         },
@@ -551,34 +590,37 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _menuIcon(String label, String asset) {
-    return Column(
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.1),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
+  Widget _menuIcon(String label, String asset, {VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.all(12),
+            child: Image.asset(asset, height: 40),
           ),
-          padding: const EdgeInsets.all(12),
-          child: Image.asset(asset, height: 40),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          style: const TextStyle(
-            color: Color(0xFF1DA1F2),
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Color(0xFF1DA1F2),
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
