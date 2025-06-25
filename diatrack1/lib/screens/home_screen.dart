@@ -5,6 +5,7 @@ import '../services/supabase_service.dart';
 import 'add_metrics_screen.dart';
 import 'login_screen.dart';
 import './medication.dart';
+import './health_metrics_history.dart';
 
 class HomeScreen extends StatefulWidget {
   final Map<String, dynamic> patientData;
@@ -439,7 +440,22 @@ class _HomeScreenState extends State<HomeScreen> {
                                 );
                               },
                             ),
-                            _menuIcon('History', 'assets/images/history.png'),
+                            _menuIcon(
+                              'History',
+                              'assets/images/history.png',
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder:
+                                        (context) => HealthMetricsHistory(
+                                          patientId:
+                                              widget.patientData['patient_id'],
+                                        ),
+                                  ),
+                                );
+                              },
+                            ),
                             _menuIcon(
                               'Reminders',
                               'assets/images/reminder.png',

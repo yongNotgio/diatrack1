@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/login_screen.dart';
 import 'screens/success_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/health_metrics_history.dart';
 
 const String supabaseUrl = 'https://wvpjwsectrwohraolniu.supabase.co';
 const String supabaseAnonKey =
