@@ -19,6 +19,8 @@ Future<void> main() async {
   final patientId = prefs.getString('patient_id');
   final firstName = prefs.getString('first_name');
   final lastName = prefs.getString('last_name');
+  final phase = prefs.getString('phase');
+  final doctorName = prefs.getString('doctor_name');
   // Add any other fields you saved
 
   runApp(
@@ -30,6 +32,8 @@ Future<void> main() async {
                 'patient_id': patientId,
                 'first_name': firstName,
                 'last_name': lastName,
+                'phase': phase,
+                'doctor_name': doctorName,
                 // Add any other fields
               }
               : null,

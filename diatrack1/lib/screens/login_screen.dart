@@ -47,6 +47,13 @@ class _LoginScreenState extends State<LoginScreen> {
         await prefs.setString('patient_id', patientData['patient_id']);
         await prefs.setString('first_name', patientData['first_name']);
         await prefs.setString('last_name', patientData['last_name']);
+        // Save phase and doctor_name if available
+        if (patientData['phase'] != null) {
+          await prefs.setString('phase', patientData['phase']);
+        }
+        if (patientData['doctor_name'] != null) {
+          await prefs.setString('doctor_name', patientData['doctor_name']);
+        }
         // Add any other fields you want to persist
 
         Navigator.pushReplacementNamed(

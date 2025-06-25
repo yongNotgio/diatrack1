@@ -435,7 +435,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                   context,
                                   MaterialPageRoute(
                                     builder:
-                                        (context) => const MedicationScreen(),
+                                        (context) => MedicationScreen(
+                                          patientId: _patientId,
+                                        ),
                                   ),
                                 );
                               },

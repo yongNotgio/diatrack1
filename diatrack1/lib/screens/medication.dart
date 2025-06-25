@@ -1,75 +1,134 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-class MedicationScreen extends StatelessWidget {
-  const MedicationScreen({Key? key}) : super(key: key);
+class Medication {
+  final String id;
+  final String name;
+  final String dosage;
+  final String timeOfDay;
+  final bool taken;
+
+  Medication({
+    required this.id,
+    required this.name,
+    required this.dosage,
+    required this.timeOfDay,
+    required this.taken,
+  });
+
+  factory Medication.fromRow(Map<String, dynamic> row) {
+    return Medication(
+      id: row['id'].toString(),
+      name: row['name'] ?? '',
+      dosage: row['dosage'] ?? '',
+      timeOfDay: row['time_of_day'] ?? '',
+      taken: row['taken'] ?? false,
+    );
+  }
+}
+
+class MedicationScreen extends StatefulWidget {
+  final String patientId;
+  const MedicationScreen({Key? key, required this.patientId}) : super(key: key);
+
+  @override
+  State<MedicationScreen> createState() => _MedicationScreenState();
+}
+
+class _MedicationScreenState extends State<MedicationScreen> {
+  final supabase = Supabase.instance.client;
+  final today = DateTime.now();
+  bool loading = true;
+  Map<String, List<Medication>> grouped = {
+    'morning': [],
+    'noon': [],
+    'dinner': [],
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMeds();
+  }
+
+  Future<void> _loadMeds() async {
+    setState(() => loading = true);
+    final patientId = widget.patientId;
+    final todayStr =
+        "${today.year.toString().padLeft(4, '0')}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}";
+    // 1. Query all active medications for today
+    final freqRows = await supabase
+        .from('medication_frequencies')
+        .select('time_of_day,medication_id,medications(name,dosage,user_id)')
+        .eq('medications.user_id', patientId)
+        .lte('start_date', todayStr);
+    // 2. Ensure medication_schedules entries exist for today
+    for (final row in freqRows) {
+      final medId = row['medication_id'];
+      final times =
+          row['time_of_day'] is List
+              ? row['time_of_day']
+              : [row['time_of_day']];
+      for (final time in times) {
+        final existsList = await supabase
+            .from('medication_schedules')
+            .select('id')
+            .eq('medication_id', medId)
+            .eq('date', todayStr)
+            .eq('time_of_day', time);
+        final exists = existsList.isNotEmpty ? existsList.first : null;
+        if (exists == null) {
+          await supabase.from('medication_schedules').insert({
+            'medication_id': medId,
+            'date': todayStr,
+            'time_of_day': time,
+            'taken': false,
+          });
+        }
+      }
+    }
+    // 3. Query all meds to display
+    final rows = await supabase
+        .from('medication_schedules')
+        .select('id,time_of_day,taken,medications(name,dosage,user_id)')
+        .eq('medications.user_id', patientId)
+        .eq('date', todayStr)
+        .order('time_of_day');
+    final Map<String, List<Medication>> newGrouped = {
+      'morning': [],
+      'noon': [],
+      'dinner': [],
+    };
+    for (final row in rows) {
+      final med = Medication(
+        id: row['id'].toString(),
+        name: row['medications']['name'] ?? '',
+        dosage: row['medications']['dosage'] ?? '',
+        timeOfDay: row['time_of_day'] ?? '',
+        taken: row['taken'] ?? false,
+      );
+      if (newGrouped.containsKey(med.timeOfDay)) {
+        newGrouped[med.timeOfDay]!.add(med);
+      }
+    }
+    setState(() {
+      grouped = newGrouped;
+      loading = false;
+    });
+  }
+
+  Future<void> _markTaken(String scheduleId) async {
+    await supabase
+        .from('medication_schedules')
+        .update({'taken': true})
+        .eq('id', scheduleId);
+    _loadMeds();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final List<String> dates = [
-      'SAT',
-      'SUN',
-      'MON',
-      'TUE',
-      'WED',
-      'THU',
-      'FRI',
-    ];
-    final List<String> dateNumbers = ['14', '15', '16', '17', '18', '19', '20'];
-    // Example medication data
-    final List<Map<String, dynamic>> meds = [
-      {
-        'time': 'Morning',
-        'items': [
-          {'name': 'Sultamicillin', 'dose': '1 tab | 750mg', 'taken': true},
-          {'name': 'Clindamycin', 'dose': '1 cap | 300mg', 'taken': false},
-          {
-            'name': 'Telmisartan/HCTZ',
-            'dose': '1 tab | 80/12.5 mg',
-            'taken': false,
-          },
-          {
-            'name': 'Amlodipine',
-            'dose': '1/2 tab | 80/12.5 mg',
-            'taken': false,
-          },
-        ],
-      },
-      {
-        'time': 'Noon',
-        'items': [
-          {'name': 'Sultamicillin', 'dose': '1 tab | 750mg', 'taken': true},
-          {'name': 'Clindamycin', 'dose': '1 cap | 300mg', 'taken': false},
-          {
-            'name': 'Telmisartan/HCTZ',
-            'dose': '1 tab | 80/12.5 mg',
-            'taken': false,
-          },
-          {
-            'name': 'Amlodipine',
-            'dose': '1/2 tab | 80/12.5 mg',
-            'taken': false,
-          },
-        ],
-      },
-      {
-        'time': 'Dinner',
-        'items': [
-          {'name': 'Sultamicillin', 'dose': '1 tab | 750mg', 'taken': true},
-          {'name': 'Clindamycin', 'dose': '1 cap | 300mg', 'taken': false},
-          {
-            'name': 'Telmisartan/HCTZ',
-            'dose': '1 tab | 80/12.5 mg',
-            'taken': false,
-          },
-          {
-            'name': 'Amlodipine',
-            'dose': '1/2 tab | 80/12.5 mg',
-            'taken': false,
-          },
-        ],
-      },
-    ];
-
+    final List<String> times = ['morning', 'noon', 'dinner'];
+    final List<String> timeLabels = ['Morning', 'Noon', 'Dinner'];
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFF),
       appBar: AppBar(
@@ -99,124 +158,76 @@ class MedicationScreen extends StatelessWidget {
         ],
         iconTheme: const IconThemeData(color: Color(0xFF1DA1F2)),
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Reminders/Date selector
-          Container(
-            color: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: List.generate(dates.length, (i) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: Column(
-                      children: [
-                        Text(
-                          dates[i],
+      body:
+          loading
+              ? const Center(child: CircularProgressIndicator())
+              : ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: times.length,
+                itemBuilder: (context, idx) {
+                  final time = times[idx];
+                  final label = timeLabels[idx];
+                  final meds = grouped[time] ?? [];
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Text(
+                          label,
                           style: const TextStyle(
-                            color: Color(0xFFB0B0B0),
+                            color: Color(0xFF1DA1F2),
                             fontWeight: FontWeight.bold,
+                            fontSize: 18,
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        Container(
-                          decoration: BoxDecoration(
-                            color:
-                                i == 1 ? const Color(0xFF1DA1F2) : Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: const Color(0xFF1DA1F2)),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          child: Text(
-                            dateNumbers[i],
-                            style: TextStyle(
-                              color:
-                                  i == 1
-                                      ? Colors.white
-                                      : const Color(0xFF1DA1F2),
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }),
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          // Medication sections
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: meds.length,
-              itemBuilder: (context, idx) {
-                final section = meds[idx];
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Text(
-                        section['time'],
-                        style: const TextStyle(
-                          color: Color(0xFF1DA1F2),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
                         ),
                       ),
-                    ),
-                    ...List.generate(section['items'].length, (i) {
-                      final med = section['items'][i];
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 10),
-                        decoration: BoxDecoration(
-                          color:
-                              med['taken']
-                                  ? const Color(0xFFB3E5FC)
-                                  : const Color(0xFFE3F2FD),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: ListTile(
-                          leading: Icon(
-                            Icons.check_circle,
+                      ...meds.map(
+                        (med) => Container(
+                          margin: const EdgeInsets.only(bottom: 10),
+                          decoration: BoxDecoration(
                             color:
-                                med['taken']
-                                    ? const Color(0xFF1DA1F2)
-                                    : Colors.grey,
+                                med.taken
+                                    ? const Color(0xFFB3E5FC)
+                                    : const Color(0xFFE3F2FD),
+                            borderRadius: BorderRadius.circular(16),
                           ),
-                          title: Text(
-                            med['name'],
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Text(med['dose']),
-                          trailing: Text(
-                            med['taken'] ? 'Done Taking' : 'Not Taken',
-                            style: TextStyle(
-                              color:
-                                  med['taken']
-                                      ? const Color(0xFF1DA1F2)
-                                      : Colors.grey,
-                              fontWeight: FontWeight.bold,
+                          child: ListTile(
+                            leading: IconButton(
+                              icon: Icon(
+                                Icons.check_circle,
+                                color:
+                                    med.taken
+                                        ? const Color(0xFF1DA1F2)
+                                        : Colors.grey,
+                              ),
+                              onPressed:
+                                  med.taken ? null : () => _markTaken(med.id),
+                            ),
+                            title: Text(
+                              med.name,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            subtitle: Text(med.dosage),
+                            trailing: Text(
+                              med.taken ? 'Done Taking' : 'Not Taken',
+                              style: TextStyle(
+                                color:
+                                    med.taken
+                                        ? const Color(0xFF1DA1F2)
+                                        : Colors.grey,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),
-                      );
-                    }),
-                  ],
-                );
-              },
-            ),
-          ),
-        ],
-      ),
+                      ),
+                    ],
+                  );
+                },
+              ),
     );
   }
 }
