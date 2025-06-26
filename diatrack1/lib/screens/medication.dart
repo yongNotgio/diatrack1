@@ -87,7 +87,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
         }
       }
     }
-    // 3. Query all meds to display
+    // 3. Query all meds to display (flat join, not nested)
     final rows = await supabase
         .from('medication_schedules')
         .select('id,time_of_day,taken,medications(name,dosage,user_id)')
@@ -100,6 +100,8 @@ class _MedicationScreenState extends State<MedicationScreen> {
       'dinner': [],
     };
     for (final row in rows) {
+      if (row['medications'] == null)
+        continue; // Defensive: skip if join failed
       final med = Medication(
         id: row['id'].toString(),
         name: row['medications']['name'] ?? '',
