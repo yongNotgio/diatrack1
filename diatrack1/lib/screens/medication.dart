@@ -131,10 +131,6 @@ class _MedicationScreenState extends State<MedicationScreen> {
   Widget build(BuildContext context) {
     final List<String> times = ['morning', 'noon', 'dinner'];
     final List<String> timeLabels = ['Morning', 'Noon', 'Dinner'];
-    final todayStr =
-        "${today.year.toString().padLeft(4, '0')}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}";
-    final dateDisplay =
-        "${today.year}, ${_monthName(today.month)} ${today.day}, ${today.year}";
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFF),
       appBar: AppBar(
@@ -144,20 +140,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
           children: [
             Image.asset('assets/images/diatrack_logo.png', height: 32),
             const SizedBox(width: 8),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Text(
-                  'Medications',
-                  style: TextStyle(
-                    color: Color(0xFF1DA1F2),
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
-                  ),
-                ),
-                SizedBox(height: 2),
-              ],
-            ),
+            Column(crossAxisAlignment: CrossAxisAlignment.start),
           ],
         ),
         actions: [
@@ -179,7 +162,22 @@ class _MedicationScreenState extends State<MedicationScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Center(
+                        child: Text(
+                          'Medications',
+                          style: TextStyle(
+                            color: Color(0xFF1DA1F2),
+                            fontSize: 30,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 10),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
                       child: Text(
@@ -199,7 +197,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
                         style: const TextStyle(
                           color: Color(0xFF1DA1F2),
                           fontWeight: FontWeight.bold,
-                          fontSize: 18,
+                          fontSize: 25,
                         ),
                       ),
                     ),
