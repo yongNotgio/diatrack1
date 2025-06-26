@@ -131,6 +131,10 @@ class _MedicationScreenState extends State<MedicationScreen> {
   Widget build(BuildContext context) {
     final List<String> times = ['morning', 'noon', 'dinner'];
     final List<String> timeLabels = ['Morning', 'Noon', 'Dinner'];
+    final todayStr =
+        "${today.year.toString().padLeft(4, '0')}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}";
+    final dateDisplay =
+        "${today.year}, ${_monthName(today.month)} ${today.day}, ${today.year}";
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFF),
       appBar: AppBar(
@@ -140,12 +144,19 @@ class _MedicationScreenState extends State<MedicationScreen> {
           children: [
             Image.asset('assets/images/diatrack_logo.png', height: 32),
             const SizedBox(width: 8),
-            const Text(
-              'Medications',
-              style: TextStyle(
-                color: Color(0xFF1DA1F2),
-                fontWeight: FontWeight.bold,
-              ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Text(
+                  'Medications',
+                  style: TextStyle(
+                    color: Color(0xFF1DA1F2),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
+                ),
+                SizedBox(height: 2),
+              ],
             ),
           ],
         ),
@@ -163,73 +174,149 @@ class _MedicationScreenState extends State<MedicationScreen> {
       body:
           loading
               ? const Center(child: CircularProgressIndicator())
-              : ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: times.length,
-                itemBuilder: (context, idx) {
-                  final time = times[idx];
-                  final label = timeLabels[idx];
-                  final meds = grouped[time] ?? [];
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+              : SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 12),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Text(
+                        'Please tick on the check marks to indicate you have taken the medicine',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 13,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Text(
+                        _dateHeader(today),
+                        style: const TextStyle(
+                          color: Color(0xFF1DA1F2),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    for (int idx = 0; idx < times.length; idx++) ...[
                       Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 8,
+                        ),
                         child: Text(
-                          label,
+                          timeLabels[idx],
                           style: const TextStyle(
                             color: Color(0xFF1DA1F2),
                             fontWeight: FontWeight.bold,
-                            fontSize: 18,
+                            fontSize: 16,
                           ),
                         ),
                       ),
-                      ...meds.map(
-                        (med) => Container(
-                          margin: const EdgeInsets.only(bottom: 10),
-                          decoration: BoxDecoration(
-                            color:
-                                med.taken
-                                    ? const Color(0xFFB3E5FC)
-                                    : const Color(0xFFE3F2FD),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: ListTile(
-                            leading: IconButton(
-                              icon: Icon(
-                                Icons.check_circle,
-                                color:
-                                    med.taken
-                                        ? const Color(0xFF1DA1F2)
-                                        : Colors.grey,
-                              ),
-                              onPressed:
-                                  med.taken ? null : () => _markTaken(med.id),
-                            ),
-                            title: Text(
-                              med.name,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            subtitle: Text(med.dosage),
-                            trailing: Text(
-                              med.taken ? 'Done Taking' : 'Not Taken',
-                              style: TextStyle(
-                                color:
-                                    med.taken
-                                        ? const Color(0xFF1DA1F2)
-                                        : Colors.grey,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
+                      ..._buildMedCards(grouped[times[idx]] ?? []),
                     ],
-                  );
-                },
+                    const SizedBox(height: 24),
+                  ],
+                ),
               ),
     );
+  }
+
+  List<Widget> _buildMedCards(List<Medication> meds) {
+    return meds.map((med) {
+      final isTaken = med.taken;
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        child: Container(
+          decoration: BoxDecoration(
+            color: isTaken ? const Color(0xFFB3E5FC) : const Color(0xFF1DA1F2),
+            borderRadius: BorderRadius.circular(18),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: ListTile(
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 8,
+            ),
+            leading: IconButton(
+              icon: Icon(
+                Icons.check_circle,
+                color: isTaken ? Colors.white : Colors.white,
+                size: 28,
+              ),
+              onPressed: isTaken ? null : () => _markTaken(med.id),
+            ),
+            title: Text(
+              med.name,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                fontSize: 16,
+              ),
+            ),
+            subtitle: Text(
+              med.dosage,
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.9),
+                fontSize: 14,
+              ),
+            ),
+            trailing: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color:
+                    isTaken
+                        ? Colors.white.withOpacity(0.2)
+                        : Colors.white.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                isTaken ? 'Done Taking' : 'Not Taken',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }).toList();
+  }
+
+  String _monthName(int month) {
+    const months = [
+      '',
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+    return months[month];
+  }
+
+  String _dateHeader(DateTime date) {
+    return "${_monthName(date.month)} ${date.day}, ${date.year}";
   }
 }
