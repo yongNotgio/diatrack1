@@ -38,6 +38,7 @@ dependencies:
   shared_preferences: ^2.2.2
   fl_chart: ^0.66.0
   dotted_border: ^2.0.0
+  flutter_dotenv: ^5.1.0
 
 dev_dependencies:
   flutter_test:
@@ -63,6 +64,7 @@ flutter:
     - assets/images/history.png
     - assets/images/reminder.png
     - assets/images/salad.png
+    - .env
 
 
   # The following line ensures that the Material Icons font is

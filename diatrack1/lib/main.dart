@@ -1,17 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'screens/login_screen.dart';
 import 'screens/success_screen.dart';
 import 'screens/home_screen.dart';
-import 'screens/health_metrics_history.dart';
 
-const String supabaseUrl = 'https://wvpjwsectrwohraolniu.supabase.co';
-const String supabaseAnonKey =
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2cGp3c2VjdHJ3b2hyYW9sbml1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM2MDgzNjQsImV4cCI6MjA1OTE4NDM2NH0.4DAp0jYwzqdPkjeGbvCl-KkhvQh_wBKKU_RvjQY0urU';
+// Supabase configuration will be loaded from .env file
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Load environment variables
+  await dotenv.load(fileName: ".env");
+
+  // Get Supabase configuration from environment variables
+  final supabaseUrl = dotenv.env['SUPABASE_URL'] ?? '';
+  final supabaseAnonKey = dotenv.env['SUPABASE_ANON_KEY'] ?? '';
+
+  if (supabaseUrl.isEmpty || supabaseAnonKey.isEmpty) {
+    throw Exception(
+      'Supabase configuration not found in environment variables',
+    );
+  }
+
   await Supabase.initialize(url: supabaseUrl, anonKey: supabaseAnonKey);
 
   // Check for saved user

@@ -52,6 +52,33 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _confirmLogout() async {
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Confirm Logout'),
+            content: const Text('Are you sure you want to log out?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text(
+                  'Logout',
+                  style: TextStyle(color: Colors.redAccent),
+                ),
+              ),
+            ],
+          ),
+    );
+    if (shouldLogout == true) {
+      _logout();
+    }
+  }
+
   String _formatDate(String? isoString) {
     if (isoString == null) return 'N/A';
     try {
@@ -104,7 +131,7 @@ class _HomeScreenState extends State<HomeScreen> {
           IconButton(
             icon: const Icon(Icons.logout, color: Colors.redAccent),
             tooltip: 'Logout',
-            onPressed: _logout,
+            onPressed: _confirmLogout,
           ),
         ],
       ),
