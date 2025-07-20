@@ -142,6 +142,53 @@ class SupabaseService {
     }
   }
 
+  Future<void> deleteHealthMetric(String metricId) async {
+    try {
+      await supabase.from('health_metrics').delete().eq('id', metricId);
+    } on PostgrestException catch (e) {
+      throw Exception('Database error: ${e.message}');
+    } catch (e) {
+      throw Exception('Failed to delete health metric: ${e.toString()}');
+    }
+  }
+
+  Future<Map<String, dynamic>> updateHealthMetric({
+    required String metricId,
+    double? bloodGlucose,
+    int? bpSystolic,
+    int? bpDiastolic,
+    int? pulseRate,
+    String? woundPhotoUrl,
+    String? foodPhotoUrl,
+    String? notes,
+  }) async {
+    try {
+      final now = DateTime.now().toIso8601String();
+      final data = {
+        'blood_glucose': bloodGlucose,
+        'bp_systolic': bpSystolic,
+        'bp_diastolic': bpDiastolic,
+        'pulse_rate': pulseRate,
+        'wound_photo_url': woundPhotoUrl,
+        'food_photo_url': foodPhotoUrl,
+        'notes': notes,
+        'updated_at': now,
+      };
+
+      final response =
+          await supabase
+              .from('health_metrics')
+              .update(data)
+              .eq('id', metricId)
+              .select()
+              .single();
+
+      return response;
+    } catch (e) {
+      throw Exception('Failed to update health metric: $e');
+    }
+  }
+
   // Future<void> deleteHealthMetric(String metricId) async {
   //   try {
   //     final response =

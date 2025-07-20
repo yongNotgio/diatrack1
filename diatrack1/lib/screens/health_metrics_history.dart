@@ -1,10 +1,16 @@
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-
+import '../models/health_metric.dart';
 import '../services/supabase_service.dart';
+import '../utils/date_formatter.dart';
+import '../widgets/overview_cards.dart';
+import '../widgets/blood_sugar_chart.dart';
+import '../widgets/blood_pressure_chart.dart';
+import '../widgets/wound_photos_section.dart';
+import '../widgets/metrics_table.dart';
 
 class HealthMetricsHistory extends StatefulWidget {
   final String patientId;
+
   const HealthMetricsHistory({Key? key, required this.patientId})
     : super(key: key);
 
@@ -14,153 +20,163 @@ class HealthMetricsHistory extends StatefulWidget {
 
 class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
   final SupabaseService _supabaseService = SupabaseService();
-  late Future<List<Map<String, dynamic>>> _metricsFuture;
+  late Future<List<HealthMetric>> _metricsFuture;
+  int _currentTabIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    _metricsFuture = _supabaseService.getHealthMetrics(widget.patientId);
+    _metricsFuture = _loadMetrics();
+  }
+
+  Future<List<HealthMetric>> _loadMetrics() async {
+    try {
+      final rawMetrics = await _supabaseService.getHealthMetrics(
+        widget.patientId,
+      );
+      return rawMetrics.map((m) => HealthMetric.fromMap(m)).toList();
+    } catch (e) {
+      throw Exception('Failed to load health metrics: $e');
+    }
+  }
+
+  void _refreshData() {
+    setState(() {
+      _metricsFuture = _loadMetrics();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: FutureBuilder<List<Map<String, dynamic>>>(
+      body: FutureBuilder<List<HealthMetric>>(
         future: _metricsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No health metrics found.'));
-          }
-          final metrics = snapshot.data!;
-          // Calculate averages
-          double avgGlucose = _average(metrics, 'blood_glucose');
-          double avgSys = _average(metrics, 'bp_systolic');
-          double avgDia = _average(metrics, 'bp_diastolic');
-          String riskClass = _getClassificationFromAverages(avgSys, avgDia);
-
-          return SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _header(),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Health Metrics History',
-                          style: TextStyle(
-                            fontSize: 30,
-                            fontWeight: FontWeight.bold,
-                            color: Color.fromRGBO(6, 154, 222, 0.867),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        const Text(
-                          'Overview',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        GridView.count(
-                          crossAxisCount: 2,
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          mainAxisSpacing: 12,
-                          crossAxisSpacing: 12,
-                          childAspectRatio: 1.25,
-                          children: [
-                            _overviewCard(
-                              'Blood Glucose',
-                              avgGlucose.toStringAsFixed(1),
-                              'mg/dL',
-                              Colors.red,
-                              label: 'AVG',
-                            ),
-                            _overviewCard(
-                              'BP Systolic',
-                              avgSys.toStringAsFixed(1),
-                              'mmHg',
-                              Colors.teal,
-                              label: 'AVG',
-                            ),
-                            _overviewCard(
-                              'BP Diastolic',
-                              avgDia.toStringAsFixed(1),
-                              'mmHg',
-                              Colors.green,
-                              label: 'AVG',
-                            ),
-                            _overviewCard(
-                              'Risk Classification',
-                              riskClass,
-                              'Surgical Risk',
-                              Colors.purple,
-                              label: 'MODE',
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
-                        // Visualizations Section
-                        const Text(
-                          'Visualizations',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        _bloodSugarChart(metrics),
-                        const SizedBox(height: 12),
-                        _bloodPressureChart(metrics),
-                        const SizedBox(height: 24),
-                        // Wound Photos Section
-                        const Text(
-                          'Wound Photos',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        _woundPhotos(metrics),
-                        const SizedBox(height: 24),
-                        // Health Metrics Submissions Section
-                        const Text(
-                          'Health Metrics Submissions',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        ...metrics
-                            .map((m) => _metricsSubmissionCard(m))
-                            .toList(),
-                      ],
-                    ),
-                  ),
-                  // ...existing code...
-                ],
+            return const Scaffold(
+              body: Center(
+                child: CircularProgressIndicator(color: Color(0xFF069ADE)),
               ),
-            ),
-          );
+            );
+          }
+
+          if (snapshot.hasError) {
+            return Scaffold(
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: Colors.red,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Error: ${snapshot.error}',
+                      style: const TextStyle(fontSize: 16),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: _refreshData,
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Scaffold(
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.health_and_safety_outlined,
+                      size: 64,
+                      color: Colors.grey,
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'No health metrics found.',
+                      style: TextStyle(fontSize: 18, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: _refreshData,
+                      child: const Text('Refresh'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          final metrics = snapshot.data!;
+          return _buildMainContent(metrics);
         },
       ),
     );
   }
 
-  Widget _header() {
+  Widget _buildMainContent(List<HealthMetric> metrics) {
+    // Calculate averages
+    final avgGlucose = _calculateAverage(
+      metrics.map((m) => m.bloodGlucose).where((v) => v != null).toList(),
+    );
+    final avgSystolic = _calculateAverage(
+      metrics
+          .map((m) => m.bpSystolic?.toDouble())
+          .where((v) => v != null)
+          .toList(),
+    );
+    final avgDiastolic = _calculateAverage(
+      metrics
+          .map((m) => m.bpDiastolic?.toDouble())
+          .where((v) => v != null)
+          .toList(),
+    );
+    final riskClassification = _getMostCommonRiskClassification(metrics);
+
+    return Scaffold(
+      body: Column(
+        children: [
+          _buildHeader(),
+          Expanded(
+            child:
+                _currentTabIndex == 0
+                    ? _buildOverviewTab(
+                      metrics,
+                      avgGlucose,
+                      avgSystolic,
+                      avgDiastolic,
+                      riskClassification,
+                    )
+                    : _buildTableTab(metrics),
+          ),
+        ],
+      ),
+      bottomNavigationBar: _buildBottomNavigation(),
+    );
+  }
+
+  Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.only(top: 40, left: 16, right: 16, bottom: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 3,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -170,222 +186,329 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
                 icon: const Icon(Icons.arrow_back),
                 onPressed: () => Navigator.of(context).pop(),
               ),
-              Image.asset('assets/images/diatrack_logo.png', height: 36),
-              const SizedBox(width: 8),
+              Image.asset(
+                'assets/images/diatrack_logo.png',
+                height: 36,
+                errorBuilder: (context, error, stackTrace) {
+                  return const Text(
+                    'DiaTrack',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF069ADE),
+                    ),
+                  );
+                },
+              ),
             ],
           ),
           IconButton(
             icon: const Icon(Icons.notifications_none),
-            onPressed: () {},
+            onPressed: () {
+              // TODO: Implement notifications
+            },
           ),
         ],
       ),
     );
   }
 
-  double _average(List<Map<String, dynamic>> metrics, String key) {
-    final values = metrics.map((m) => m[key]).where((v) => v != null).toList();
-    if (values.isEmpty) return 0;
-    return values
-            .map((v) => v is int ? v.toDouble() : v as double)
-            .reduce((a, b) => a + b) /
-        values.length;
+  Widget _buildOverviewTab(
+    List<HealthMetric> metrics,
+    double avgGlucose,
+    double avgSystolic,
+    double avgDiastolic,
+    String riskClassification,
+  ) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Health Metrics History',
+            style: TextStyle(
+              fontSize: 30,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF069ADE),
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Overview Section
+          const Text(
+            'Overview',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          ),
+          const SizedBox(height: 12),
+          OverviewCards(
+            avgGlucose: avgGlucose,
+            avgSystolic: avgSystolic,
+            avgDiastolic: avgDiastolic,
+            riskClassification: riskClassification,
+          ),
+          const SizedBox(height: 24),
+
+          // Visualizations Section
+          const Text(
+            'Visualizations',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          ),
+          const SizedBox(height: 12),
+          BloodSugarChart(metrics: metrics),
+          const SizedBox(height: 12),
+          BloodPressureChart(metrics: metrics),
+          const SizedBox(height: 24),
+
+          // Wound Photos Section
+          const Text(
+            'Wound Photos',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          ),
+          const SizedBox(height: 12),
+          WoundPhotosSection(metrics: metrics),
+          const SizedBox(height: 24),
+
+          // Health Metrics Submissions Section
+          const Text(
+            'Health Metrics Submissions',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          ),
+          const SizedBox(height: 12),
+          ...metrics
+              .map((metric) => _buildMetricSubmissionCard(metric))
+              .toList(),
+        ],
+      ),
+    );
   }
 
-  String _getClassificationFromAverages(double sys, double dia) {
-    if (sys < 130 && dia < 85) return 'LOW';
-    if (sys < 140 && dia < 90) return 'MEDIUM';
-    return 'HIGH';
-  }
+  Widget _buildTableTab(List<HealthMetric> metrics) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Health Metrics History',
+            style: TextStyle(
+              fontSize: 30,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF069ADE),
+            ),
+          ),
+          const SizedBox(height: 24),
 
-  Widget _overviewCard(
-    String title,
-    String value,
-    String unit,
-    Color color, {
-    String? label,
-  }) {
-    return Card(
-      color: color.withOpacity(0.1),
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (label != null)
-              Container(
-                margin: const EdgeInsets.only(bottom: 4),
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: color,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+          // Search Bar
+          TextField(
+            decoration: InputDecoration(
+              hintText: 'Search',
+              prefixIcon: const Icon(Icons.search),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: Colors.grey.withOpacity(0.3)),
               ),
-            Text(title, style: TextStyle(fontSize: 12, color: color)),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: color,
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: Colors.grey.withOpacity(0.3)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: Color(0xFF069ADE)),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
               ),
             ),
-            Text(unit, style: TextStyle(fontSize: 12, color: color)),
-          ],
-        ),
-      ),
-    );
-  }
+          ),
+          const SizedBox(height: 16),
 
-  String _getClassification(Map<String, dynamic> metric) {
-    // Example: classify based on blood pressure or glucose
-    final sys = metric['bp_systolic'] ?? 0;
-    final dia = metric['bp_diastolic'] ?? 0;
-    if (sys < 130 && dia < 85) return 'LOW';
-    if (sys < 140 && dia < 90) return 'MEDIUM';
-    return 'HIGH';
-  }
-
-  Widget _bloodSugarChart(List<Map<String, dynamic>> metrics) {
-    final spots = <FlSpot>[];
-    for (int i = 0; i < metrics.length; i++) {
-      final val = metrics[i]['blood_glucose'];
-      if (val != null) {
-        spots.add(FlSpot(i.toDouble(), val.toDouble()));
-      }
-    }
-    return SizedBox(
-      height: 120,
-      child: LineChart(
-        LineChartData(
-          lineBarsData: [
-            LineChartBarData(
-              spots: spots,
-              isCurved: true,
-              color: Colors.blue,
-              barWidth: 3,
-              dotData: FlDotData(show: false),
-            ),
-          ],
-          titlesData: FlTitlesData(show: false),
-          borderData: FlBorderData(show: false),
-        ),
-      ),
-    );
-  }
-
-  Widget _bloodPressureChart(List<Map<String, dynamic>> metrics) {
-    final sysSpots = <FlSpot>[];
-    final diaSpots = <FlSpot>[];
-    for (int i = 0; i < metrics.length; i++) {
-      final sys = metrics[i]['bp_systolic'];
-      final dia = metrics[i]['bp_diastolic'];
-      if (sys != null) sysSpots.add(FlSpot(i.toDouble(), sys.toDouble()));
-      if (dia != null) diaSpots.add(FlSpot(i.toDouble(), dia.toDouble()));
-    }
-    return SizedBox(
-      height: 120,
-      child: LineChart(
-        LineChartData(
-          lineBarsData: [
-            LineChartBarData(
-              spots: sysSpots,
-              isCurved: true,
-              color: Colors.red,
-              barWidth: 3,
-              dotData: FlDotData(show: false),
-            ),
-            LineChartBarData(
-              spots: diaSpots,
-              isCurved: true,
-              color: Colors.green,
-              barWidth: 3,
-              dotData: FlDotData(show: false),
-            ),
-          ],
-          titlesData: FlTitlesData(show: false),
-          borderData: FlBorderData(show: false),
-        ),
-      ),
-    );
-  }
-
-  Widget _woundPhotos(List<Map<String, dynamic>> metrics) {
-    final photos =
-        metrics
-            .where(
-              (m) =>
-                  m['wound_photo_url'] != null &&
-                  m['wound_photo_url'].toString().isNotEmpty,
-            )
-            .toList();
-    if (photos.isEmpty) {
-      return const Text('No wound photos available.');
-    }
-    return Row(
-      children:
-          photos.take(2).map((m) {
-            return Padding(
-              padding: const EdgeInsets.only(right: 12),
-              child: Column(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.network(
-                      m['wound_photo_url'],
-                      width: 60,
-                      height: 60,
-                      fit: BoxFit.cover,
+          // Action Buttons
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    // TODO: Implement filter functionality
+                  },
+                  icon: const Icon(Icons.filter_list, size: 16),
+                  label: const Text('Filter'),
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: Colors.grey.withOpacity(0.3)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    _formatDate(m['submission_date']),
-                    style: const TextStyle(fontSize: 10),
-                  ),
-                ],
+                ),
               ),
-            );
-          }).toList(),
+              const SizedBox(width: 12),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    // TODO: Implement export functionality
+                  },
+                  icon: const Icon(Icons.upload, size: 16),
+                  label: const Text('Export'),
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: Colors.grey.withOpacity(0.3)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+
+          // Tables
+          MetricsTable(
+            metrics: metrics,
+            title: 'Blood Glucose Table',
+            metricType: 'glucose',
+          ),
+          const SizedBox(height: 24),
+          MetricsTable(
+            metrics: metrics,
+            title: 'Blood Pressure Table',
+            metricType: 'pressure',
+          ),
+          const SizedBox(height: 24),
+          MetricsTable(
+            metrics: metrics,
+            title: 'Risk Class Table',
+            metricType: 'risk',
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _metricsSubmissionCard(Map<String, dynamic> m) {
+  Widget _buildMetricSubmissionCard(HealthMetric metric) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 6),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
-        padding: const EdgeInsets.all(10.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              _formatDateTime(m['submission_date']),
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Blood Glucose: ${m['blood_glucose'] ?? '-'}',
-                  style: const TextStyle(fontSize: 12),
+                  DateFormatter.formatDateTime(metric.submissionDate),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
                 ),
-                const SizedBox(width: 16),
-                Text(
-                  'Blood Pressure: ${m['bp_systolic'] ?? '-'} / ${m['bp_diastolic'] ?? '-'}',
-                  style: const TextStyle(fontSize: 12),
+                Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.edit, size: 16),
+                      onPressed: () {
+                        // TODO: Implement edit functionality
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete, size: 16),
+                      onPressed: () async {
+                        final confirmed = await showDialog<bool>(
+                          context: context,
+                          builder:
+                              (context) => AlertDialog(
+                                title: const Text('Delete Metric'),
+                                content: const Text(
+                                  'Are you sure you want to delete this health metric?',
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed:
+                                        () => Navigator.of(context).pop(false),
+                                    child: const Text('Cancel'),
+                                  ),
+                                  TextButton(
+                                    onPressed:
+                                        () => Navigator.of(context).pop(true),
+                                    child: const Text('Delete'),
+                                  ),
+                                ],
+                              ),
+                        );
+
+                        if (confirmed == true) {
+                          try {
+                            await _supabaseService.deleteHealthMetric(
+                              metric.id,
+                            );
+                            _refreshData();
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Metric deleted successfully'),
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Failed to delete metric: $e'),
+                                ),
+                              );
+                            }
+                          }
+                        }
+                      },
+                    ),
+                  ],
                 ),
               ],
             ),
-            Text(
-              'Classification: ${_getClassification(m)}',
-              style: const TextStyle(fontSize: 12, color: Colors.blue),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Blood Glucose: ${metric.bloodGlucose?.toStringAsFixed(0) ?? '-'} mg/dL',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                      Text(
+                        'Classification: ${metric.glucoseClassification}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.blue,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Blood Pressure: ${metric.bpSystolic ?? '-'} / ${metric.bpDiastolic ?? '-'} mmHg',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                      Text(
+                        'Risk: ${metric.riskClassification}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.orange,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -393,17 +516,41 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
     );
   }
 
-  String _formatDate(String? date) {
-    if (date == null) return '-';
-    final dt = DateTime.tryParse(date);
-    if (dt == null) return '-';
-    return '${dt.month}/${dt.day}/${dt.year}';
+  Widget _buildBottomNavigation() {
+    return BottomNavigationBar(
+      currentIndex: _currentTabIndex,
+      onTap: (index) {
+        setState(() {
+          _currentTabIndex = index;
+        });
+      },
+      type: BottomNavigationBarType.fixed,
+      selectedItemColor: const Color(0xFF069ADE),
+      unselectedItemColor: Colors.grey,
+      items: const [
+        BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Overview'),
+        BottomNavigationBarItem(icon: Icon(Icons.table_chart), label: 'Tables'),
+      ],
+    );
   }
 
-  String _formatDateTime(String? date) {
-    if (date == null) return '-';
-    final dt = DateTime.tryParse(date);
-    if (dt == null) return '-';
-    return '${dt.month}/${dt.day}/${dt.year} | ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+  double _calculateAverage(List<double?> values) {
+    if (values.isEmpty) return 0;
+    final validValues = values.where((v) => v != null).map((v) => v!).toList();
+    if (validValues.isEmpty) return 0;
+    return validValues.reduce((a, b) => a + b) / validValues.length;
+  }
+
+  String _getMostCommonRiskClassification(List<HealthMetric> metrics) {
+    final classifications = metrics.map((m) => m.riskClassification).toList();
+    final counts = <String, int>{};
+
+    for (final classification in classifications) {
+      counts[classification] = (counts[classification] ?? 0) + 1;
+    }
+
+    if (counts.isEmpty) return 'UNKNOWN';
+
+    return counts.entries.reduce((a, b) => a.value > b.value ? a : b).key;
   }
 }
