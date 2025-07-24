@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import '../models/health_metric.dart';
 import '../utils/date_formatter.dart';
 
+enum SortColumn { id, date, value }
+
+enum SortDirection { asc, desc }
+
 class MetricsTable extends StatefulWidget {
   final List<HealthMetric> metrics;
   final String title;
@@ -23,10 +27,15 @@ class _MetricsTableState extends State<MetricsTable> {
   List<HealthMetric> _filteredMetrics = [];
   String _searchQuery = '';
 
+  // Sorting state
+  SortColumn _sortColumn = SortColumn.date;
+  SortDirection _sortDirection = SortDirection.desc;
+
   @override
   void initState() {
     super.initState();
     _filteredMetrics = widget.metrics;
+    _sortMetrics();
   }
 
   @override
@@ -38,45 +47,91 @@ class _MetricsTableState extends State<MetricsTable> {
   }
 
   void _filterMetrics() {
+    List<HealthMetric> filtered;
     if (_searchQuery.isEmpty) {
-      setState(() {
-        _filteredMetrics = widget.metrics;
-      });
+      filtered = widget.metrics;
     } else {
-      setState(() {
-        _filteredMetrics =
-            widget.metrics.where((metric) {
-              final dateStr =
-                  DateFormatter.formatDateTime(
-                    metric.submissionDate,
-                  ).toLowerCase();
-              final entryId = metric.id.toLowerCase();
-
-              switch (widget.metricType) {
-                case 'glucose':
-                  final glucose = metric.bloodGlucose?.toString() ?? '';
-                  return dateStr.contains(_searchQuery.toLowerCase()) ||
-                      entryId.contains(_searchQuery.toLowerCase()) ||
-                      glucose.contains(_searchQuery);
-                case 'pressure':
-                  final systolic = metric.bpSystolic?.toString() ?? '';
-                  final diastolic = metric.bpDiastolic?.toString() ?? '';
-                  return dateStr.contains(_searchQuery.toLowerCase()) ||
-                      entryId.contains(_searchQuery.toLowerCase()) ||
-                      systolic.contains(_searchQuery) ||
-                      diastolic.contains(_searchQuery);
-                case 'risk':
-                  final risk = metric.riskClassification.toLowerCase();
-                  return dateStr.contains(_searchQuery.toLowerCase()) ||
-                      entryId.contains(_searchQuery.toLowerCase()) ||
-                      risk.contains(_searchQuery.toLowerCase());
-                default:
-                  return dateStr.contains(_searchQuery.toLowerCase()) ||
-                      entryId.contains(_searchQuery.toLowerCase());
-              }
-            }).toList();
-      });
+      filtered =
+          widget.metrics.where((metric) {
+            final dateStr =
+                DateFormatter.formatDateTime(
+                  metric.submissionDate,
+                ).toLowerCase();
+            final entryId = metric.id.toLowerCase();
+            switch (widget.metricType) {
+              case 'glucose':
+                final glucose = metric.bloodGlucose?.toString() ?? '';
+                return dateStr.contains(_searchQuery.toLowerCase()) ||
+                    entryId.contains(_searchQuery.toLowerCase()) ||
+                    glucose.contains(_searchQuery);
+              case 'pressure':
+                final systolic = metric.bpSystolic?.toString() ?? '';
+                final diastolic = metric.bpDiastolic?.toString() ?? '';
+                return dateStr.contains(_searchQuery.toLowerCase()) ||
+                    entryId.contains(_searchQuery.toLowerCase()) ||
+                    systolic.contains(_searchQuery) ||
+                    diastolic.contains(_searchQuery);
+              case 'risk':
+                final risk = metric.riskClassification.toLowerCase();
+                return dateStr.contains(_searchQuery.toLowerCase()) ||
+                    entryId.contains(_searchQuery.toLowerCase()) ||
+                    risk.contains(_searchQuery.toLowerCase());
+              default:
+                return dateStr.contains(_searchQuery.toLowerCase()) ||
+                    entryId.contains(_searchQuery.toLowerCase());
+            }
+          }).toList();
     }
+    setState(() {
+      _filteredMetrics = filtered;
+      _sortMetrics();
+    });
+  }
+
+  void _sortMetrics([SortColumn? column]) {
+    if (column != null) {
+      if (_sortColumn == column) {
+        // Toggle direction
+        _sortDirection =
+            _sortDirection == SortDirection.asc
+                ? SortDirection.desc
+                : SortDirection.asc;
+      } else {
+        _sortColumn = column;
+        _sortDirection = SortDirection.desc;
+      }
+    }
+    _filteredMetrics.sort((a, b) {
+      int cmp;
+      switch (_sortColumn) {
+        case SortColumn.id:
+          cmp = a.id.compareTo(b.id);
+          break;
+        case SortColumn.date:
+          cmp = a.submissionDate.compareTo(b.submissionDate);
+          break;
+        case SortColumn.value:
+          switch (widget.metricType) {
+            case 'glucose':
+              cmp = (a.bloodGlucose ?? 0).compareTo(b.bloodGlucose ?? 0);
+              break;
+            case 'pressure':
+              // Sort by systolic, then diastolic
+              cmp = (a.bpSystolic ?? 0).compareTo(b.bpSystolic ?? 0);
+              if (cmp == 0) {
+                cmp = (a.bpDiastolic ?? 0).compareTo(b.bpDiastolic ?? 0);
+              }
+              break;
+            case 'risk':
+              cmp = a.riskClassification.compareTo(b.riskClassification);
+              break;
+            default:
+              cmp = 0;
+          }
+          break;
+      }
+      return _sortDirection == SortDirection.asc ? cmp : -cmp;
+    });
   }
 
   @override
@@ -109,6 +164,7 @@ class _MetricsTableState extends State<MetricsTable> {
                           _searchController.clear();
                           _searchQuery = '';
                           _filteredMetrics = widget.metrics;
+                          _sortMetrics();
                         });
                       },
                     ),
@@ -206,31 +262,88 @@ class _MetricsTableState extends State<MetricsTable> {
                 children: [
                   Expanded(
                     flex: 1,
-                    child: Text(
-                      'Entry ID',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey[700],
+                    child: InkWell(
+                      onTap: () {
+                        setState(() {
+                          _sortMetrics(SortColumn.id);
+                        });
+                      },
+                      child: Row(
+                        children: [
+                          Text(
+                            'Entry ID',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey[700],
+                            ),
+                          ),
+                          if (_sortColumn == SortColumn.id)
+                            Icon(
+                              _sortDirection == SortDirection.asc
+                                  ? Icons.arrow_upward
+                                  : Icons.arrow_downward,
+                              size: 16,
+                              color: Color(0xFF069ADE),
+                            ),
+                        ],
                       ),
                     ),
                   ),
                   Expanded(
                     flex: 2,
-                    child: Text(
-                      'Date and Time',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey[700],
+                    child: InkWell(
+                      onTap: () {
+                        setState(() {
+                          _sortMetrics(SortColumn.date);
+                        });
+                      },
+                      child: Row(
+                        children: [
+                          Text(
+                            'Date & Time',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey[700],
+                            ),
+                          ),
+                          if (_sortColumn == SortColumn.date)
+                            Icon(
+                              _sortDirection == SortDirection.asc
+                                  ? Icons.arrow_upward
+                                  : Icons.arrow_downward,
+                              size: 16,
+                              color: Color(0xFF069ADE),
+                            ),
+                        ],
                       ),
                     ),
                   ),
                   Expanded(
                     flex: 1,
-                    child: Text(
-                      _getMetricColumnTitle(),
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey[700],
+                    child: InkWell(
+                      onTap: () {
+                        setState(() {
+                          _sortMetrics(SortColumn.value);
+                        });
+                      },
+                      child: Row(
+                        children: [
+                          Text(
+                            _getMetricColumnLabel(),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey[700],
+                            ),
+                          ),
+                          if (_sortColumn == SortColumn.value)
+                            Icon(
+                              _sortDirection == SortDirection.asc
+                                  ? Icons.arrow_upward
+                                  : Icons.arrow_downward,
+                              size: 16,
+                              color: Color(0xFF069ADE),
+                            ),
+                        ],
                       ),
                     ),
                   ),
@@ -293,14 +406,14 @@ class _MetricsTableState extends State<MetricsTable> {
     );
   }
 
-  String _getMetricColumnTitle() {
+  String _getMetricColumnLabel() {
     switch (widget.metricType) {
       case 'glucose':
-        return 'Blood Glucose';
+        return 'Blood Glucose (mg/dL)';
       case 'pressure':
-        return 'Blood Pressure';
+        return 'Blood Pressure (mmHg)';
       case 'risk':
-        return 'Risk Class';
+        return 'Risk Classification';
       default:
         return 'Value';
     }
