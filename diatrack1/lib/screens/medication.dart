@@ -271,22 +271,12 @@ class _MedicationScreenState extends State<MedicationScreen> {
                 fontSize: 14,
               ),
             ),
-            trailing: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color:
-                    isTaken
-                        ? Colors.white.withOpacity(0.2)
-                        : Colors.white.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                isTaken ? 'Done Taking' : 'Not Taken',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
-                ),
+            trailing: Text(
+              isTaken ? 'Done Taking' : 'Not Taken',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
               ),
             ),
           ),
