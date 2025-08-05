@@ -250,7 +250,7 @@ class _MetricsTableState extends State<MetricsTable> {
             const SizedBox(height: 16),
             // Table Header
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               decoration: BoxDecoration(
                 color: const Color(0xFF069ADE).withOpacity(0.1),
                 borderRadius: const BorderRadius.only(
@@ -261,7 +261,7 @@ class _MetricsTableState extends State<MetricsTable> {
               child: Row(
                 children: [
                   Expanded(
-                    flex: 1,
+                    flex: 2,
                     child: InkWell(
                       onTap: () {
                         setState(() {
@@ -269,12 +269,17 @@ class _MetricsTableState extends State<MetricsTable> {
                         });
                       },
                       child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(
-                            'Entry ID',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey[700],
+                          Flexible(
+                            child: Text(
+                              'Entry ID',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey[700],
+                                fontSize: 12,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           if (_sortColumn == SortColumn.id)
@@ -282,7 +287,7 @@ class _MetricsTableState extends State<MetricsTable> {
                               _sortDirection == SortDirection.asc
                                   ? Icons.arrow_upward
                                   : Icons.arrow_downward,
-                              size: 16,
+                              size: 14,
                               color: Color(0xFF069ADE),
                             ),
                         ],
@@ -290,7 +295,7 @@ class _MetricsTableState extends State<MetricsTable> {
                     ),
                   ),
                   Expanded(
-                    flex: 2,
+                    flex: 3,
                     child: InkWell(
                       onTap: () {
                         setState(() {
@@ -298,12 +303,17 @@ class _MetricsTableState extends State<MetricsTable> {
                         });
                       },
                       child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(
-                            'Date & Time',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey[700],
+                          Flexible(
+                            child: Text(
+                              'Date & Time',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey[700],
+                                fontSize: 12,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           if (_sortColumn == SortColumn.date)
@@ -311,7 +321,7 @@ class _MetricsTableState extends State<MetricsTable> {
                               _sortDirection == SortDirection.asc
                                   ? Icons.arrow_upward
                                   : Icons.arrow_downward,
-                              size: 16,
+                              size: 14,
                               color: Color(0xFF069ADE),
                             ),
                         ],
@@ -319,7 +329,7 @@ class _MetricsTableState extends State<MetricsTable> {
                     ),
                   ),
                   Expanded(
-                    flex: 1,
+                    flex: 3,
                     child: InkWell(
                       onTap: () {
                         setState(() {
@@ -327,12 +337,18 @@ class _MetricsTableState extends State<MetricsTable> {
                         });
                       },
                       child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(
-                            _getMetricColumnLabel(),
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey[700],
+                          Flexible(
+                            child: Text(
+                              _getMetricColumnLabel(),
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey[700],
+                                fontSize: 12,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 2,
                             ),
                           ),
                           if (_sortColumn == SortColumn.value)
@@ -340,7 +356,7 @@ class _MetricsTableState extends State<MetricsTable> {
                               _sortDirection == SortDirection.asc
                                   ? Icons.arrow_upward
                                   : Icons.arrow_downward,
-                              size: 16,
+                              size: 14,
                               color: Color(0xFF069ADE),
                             ),
                         ],
@@ -360,8 +376,8 @@ class _MetricsTableState extends State<MetricsTable> {
                   final metric = _filteredMetrics[index];
                   return Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
+                      horizontal: 12,
+                      vertical: 8,
                     ),
                     decoration: BoxDecoration(
                       border: Border(
@@ -371,27 +387,39 @@ class _MetricsTableState extends State<MetricsTable> {
                     child: Row(
                       children: [
                         Expanded(
-                          flex: 1,
+                          flex: 2,
                           child: Text(
                             '#${metric.id.padLeft(4, '0')}',
                             style: const TextStyle(
                               fontWeight: FontWeight.w500,
                               color: Color(0xFF069ADE),
+                              fontSize: 12,
                             ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         Expanded(
-                          flex: 2,
+                          flex: 3,
                           child: Text(
-                            DateFormatter.formatDateTime(metric.submissionDate),
-                            style: const TextStyle(fontWeight: FontWeight.w500),
+                            _formatDateForTable(metric.submissionDate),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 12,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 2,
                           ),
                         ),
                         Expanded(
-                          flex: 1,
+                          flex: 3,
                           child: Text(
                             _getMetricValue(metric),
-                            style: const TextStyle(fontWeight: FontWeight.w500),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 12,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 2,
                           ),
                         ),
                       ],
@@ -409,24 +437,46 @@ class _MetricsTableState extends State<MetricsTable> {
   String _getMetricColumnLabel() {
     switch (widget.metricType) {
       case 'glucose':
-        return 'Blood Glucose (mg/dL)';
+        return 'Blood Glucose\n(mg/dL)';
       case 'pressure':
-        return 'Blood Pressure (mmHg)';
+        return 'Blood Pressure\n(mmHg)';
       case 'risk':
-        return 'Risk Classification';
+        return 'Risk\nClassification';
       default:
         return 'Value';
     }
   }
 
+  String _formatDateForTable(DateTime date) {
+    // Format date more compactly for table display
+    final day = date.day.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    final year = date.year.toString();
+    final hour = date.hour.toString().padLeft(2, '0');
+    final minute = date.minute.toString().padLeft(2, '0');
+
+    return '$day/$month/$year\n$hour:$minute';
+  }
+
   String _getMetricValue(HealthMetric metric) {
     switch (widget.metricType) {
       case 'glucose':
-        return '${metric.bloodGlucose?.toStringAsFixed(0) ?? '-'} mg/dL';
+        return '${metric.bloodGlucose?.toStringAsFixed(0) ?? '-'}\nmg/dL';
       case 'pressure':
-        return '${metric.bpSystolic ?? '-'}/${metric.bpDiastolic ?? '-'}';
+        return '${metric.bpSystolic ?? '-'}/\n${metric.bpDiastolic ?? '-'}';
       case 'risk':
-        return metric.riskClassification;
+        // Break long risk classifications into multiple lines
+        final risk = metric.riskClassification;
+        if (risk.length > 10) {
+          final words = risk.split(' ');
+          if (words.length > 1) {
+            final mid = (words.length / 2).ceil();
+            final firstLine = words.take(mid).join(' ');
+            final secondLine = words.skip(mid).join(' ');
+            return '$firstLine\n$secondLine';
+          }
+        }
+        return risk;
       default:
         return '-';
     }

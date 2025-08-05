@@ -238,9 +238,13 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
           // Overview Section
           const Text(
             'Overview',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+              color: Color(0xFF2D3748),
+            ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           OverviewCards(
             avgGlucose: avgGlucose,
             avgSystolic: avgSystolic,
