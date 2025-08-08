@@ -248,14 +248,6 @@ class _MedicationScreenState extends State<MedicationScreen> {
               horizontal: 20,
               vertical: 8,
             ),
-            leading: IconButton(
-              icon: Icon(
-                Icons.check_circle,
-                color: isTaken ? Colors.white : Colors.white,
-                size: 28,
-              ),
-              onPressed: isTaken ? null : () => _markTaken(med.id),
-            ),
             title: Text(
               med.name,
               style: TextStyle(
@@ -271,12 +263,33 @@ class _MedicationScreenState extends State<MedicationScreen> {
                 fontSize: 14,
               ),
             ),
-            trailing: Text(
-              isTaken ? 'Done Taking' : 'Not Taken',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
+            trailing: Container(
+              width: 60,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  GestureDetector(
+                    onTap: isTaken ? null : () => _markTaken(med.id),
+                    child: Icon(
+                      Icons.check_circle,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    isTaken ? 'Done' : 'Not Taken',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 11,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
             ),
           ),
