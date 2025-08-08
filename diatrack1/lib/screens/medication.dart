@@ -272,7 +272,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
                   GestureDetector(
                     onTap: isTaken ? null : () => _markTaken(med.id),
                     child: Icon(
-                      Icons.check_circle,
+                      isTaken ? Icons.check_circle : Icons.check_circle_outline,
                       color: Colors.white,
                       size: 24,
                     ),
