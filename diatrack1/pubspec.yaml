@@ -60,6 +60,16 @@ flutter:
     - assets/images/salad.png
     - assets/images/add.png
     - assets/images/card2.png
+    - assets/images/image 18.png
+    - assets/images/Frame 2.png
+    - assets/images/Frame 1.png
+    - assets/images/bp.png
+    - assets/images/sys.png
+    - assets/images/dia.png
+    - assets/images/risk.png
+    - assets/images/low_risk.png
+    - assets/images/medium_risk.png
+    - assets/images/high_risk.png
     - .env
     
   fonts:

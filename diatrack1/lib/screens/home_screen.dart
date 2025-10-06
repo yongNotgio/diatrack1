@@ -553,7 +553,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           'Main Menu',
                           style: TextStyle(
                             fontFamily: 'Poppins',
-                            color: Color(0xFF1DA1F2),
+                            color: Color(0xFF0D629E),
                             fontWeight: FontWeight.bold,
                             fontSize: 22,
                           ),
@@ -608,12 +608,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         const Text(
                           'Latest Health Metric',
                           style: TextStyle(
-                            color: Color(0xFF1DA1F2),
+                            fontFamily: 'Poppins',
+                            color: Color(0xFF0D629E),
                             fontWeight: FontWeight.bold,
                             fontSize: 22,
                           ),
@@ -628,26 +629,35 @@ class _HomeScreenState extends State<HomeScreen> {
                             icon: Icons.bloodtype,
                             taken: date,
                           ),
-                          _miniMetricCard(
-                            title: 'Blood Pressure',
-                            value: '${metric['bp_systolic'] ?? '--'}',
-                            value2: '${metric['bp_diastolic'] ?? '--'}',
-                            unit: 'mmHg',
-                            taken: date,
-                            status: 'LOW',
-                          ),
-                          _miniMetricCard(
-                            title: 'Risk for Surgery',
-                            value: '',
-                            value2: '',
-                            unit: '',
-                            taken: date,
-                            status:
-                                widget.patientData['risk_classification']
-                                    ?.toString()
-                                    .toUpperCase() ??
-                                'N/A',
-                            isRisk: true,
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _miniMetricCard(
+                                  title: 'Blood Pressure',
+                                  value: '${metric['bp_systolic'] ?? '--'}',
+                                  value2: '${metric['bp_diastolic'] ?? '--'}',
+                                  unit: 'mmHg',
+                                  taken: date,
+                                  status: 'LOW',
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _miniMetricCard(
+                                  title: 'Risk for Surgery',
+                                  value: '',
+                                  value2: '',
+                                  unit: '',
+                                  taken: date,
+                                  status:
+                                      widget.patientData['risk_classification']
+                                          ?.toString()
+                                          .toUpperCase() ??
+                                      'N/A',
+                                  isRisk: true,
+                                ),
+                              ),
+                            ],
                           ),
                         ] else
                           const Text(
@@ -740,7 +750,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: const Color(0xFFE2F6FF),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
@@ -755,57 +765,100 @@ class _HomeScreenState extends State<HomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Icon(icon, color: const Color(0xFF1DA1F2)),
-              const SizedBox(width: 8),
               Text(
                 title,
                 style: const TextStyle(
-                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w500,
                   fontSize: 18,
+                  color: Color(0xFF0D629E),
                 ),
               ),
-              const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFB300),
-                  borderRadius: BorderRadius.circular(12),
+                  color: const Color(0xFFF8A50D),
+                  borderRadius: BorderRadius.circular(15),
                 ),
                 child: Text(
                   tag,
                   style: const TextStyle(
+                    fontFamily: 'Poppins',
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
-                    fontSize: 10,
+                    fontSize: 12,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
+              Image.asset('assets/images/image 18.png', height: 50, width: 50),
+              const SizedBox(width: 4),
               Text(
                 value,
                 style: const TextStyle(
-                  fontSize: 48,
+                  fontFamily: 'Poppins',
+                  fontSize: 80,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1DA1F2),
+                  color: Color(0xFF45B6E8),
+                  height: 0.9,
                 ),
               ),
               const SizedBox(width: 8),
-              Text(
-                unit,
-                style: const TextStyle(fontSize: 18, color: Colors.grey),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF45B6E8),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Text(
+                      'fbs',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    unit,
+                    style: const TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 14,
+                      color: Color(0xFF45B6E8),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Text(
             'Taken last: $taken',
-            style: const TextStyle(color: Colors.grey, fontSize: 14),
+            style: const TextStyle(
+              fontFamily: 'Poppins',
+              color: Color(0xFF45B6E8),
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ],
       ),
@@ -824,7 +877,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: const Color(0xFFE2F6FF),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
@@ -834,89 +887,206 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                isRisk ? Icons.warning_amber_rounded : Icons.favorite,
-                color: isRisk ? Colors.green : const Color(0xFF1DA1F2),
-                size: 20,
+      padding: const EdgeInsets.all(20),
+      child:
+          isRisk
+              ? _buildRiskCard(status, taken)
+              : _buildBloodPressureCard(value, value2, unit, status, taken),
+    );
+  }
+
+  Widget _buildBloodPressureCard(
+    String sys,
+    String dia,
+    String unit,
+    String status,
+    String taken,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Text(
+              'Blood\nPressure',
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w500,
+                fontSize: 16,
+                color: Color(0xFF0D629E),
+                height: 1.2,
               ),
-              const SizedBox(width: 6),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          if (!isRisk)
+            ),
+            const SizedBox(width: 8),
+            Image.asset('assets/images/bp.png', width: 28, height: 28),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // SYS section
             Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1DA1F2),
+                Padding(
+                  padding: const EdgeInsets.only(top: 6.0),
+                  child: Image.asset(
+                    'assets/images/sys.png',
+                    width: 24,
+                    height: 24,
                   ),
                 ),
-                const Text(
-                  '/',
-                  style: TextStyle(fontSize: 24, color: Colors.grey),
-                ),
-                Text(
-                  value2,
-                  style: const TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1DA1F2),
+                const SizedBox(width: 4),
+                Flexible(
+                  child: Text(
+                    sys,
+                    style: const TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 52,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF45B6E8),
+                      height: 0.9,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  unit,
-                  style: const TextStyle(fontSize: 14, color: Colors.grey),
                 ),
               ],
             ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 2,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.green[100],
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  status,
-                  style: const TextStyle(
-                    color: Colors.green,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
+            const SizedBox(height: 4),
+            // DIA section
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(top: 6.0),
+                  child: Image.asset(
+                    'assets/images/dia.png',
+                    width: 24,
+                    height: 24,
                   ),
                 ),
+                const SizedBox(width: 4),
+                Flexible(
+                  child: Text(
+                    dia,
+                    style: const TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 52,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF45B6E8),
+                      height: 0.9,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFF4CAF50),
+                borderRadius: BorderRadius.circular(12),
               ),
-              const SizedBox(width: 8),
-              Text(
-                isRisk ? 'Classified last: $taken' : 'Taken last: $taken',
-                style: const TextStyle(color: Colors.grey, fontSize: 12),
+              child: Text(
+                status,
+                style: const TextStyle(
+                  fontFamily: 'Poppins',
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12,
+                ),
               ),
-            ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Taken last:\n$taken',
+          style: const TextStyle(
+            fontFamily: 'Poppins',
+            color: Color(0xFF45B6E8),
+            fontSize: 10,
+            height: 1.2,
+            fontWeight: FontWeight.bold,
           ),
-        ],
-      ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRiskCard(String status, String taken) {
+    // Determine risk level color and icon
+    Color riskColor;
+    String riskIcon;
+
+    if (status.toUpperCase() == 'LOW') {
+      riskColor = const Color(0xFF4CAF50);
+      riskIcon = 'assets/images/low_risk.png';
+    } else if (status.toUpperCase() == 'MEDIUM') {
+      riskColor = const Color(0xFFFFA726);
+      riskIcon = 'assets/images/medium_risk.png';
+    } else {
+      riskColor = const Color(0xFFEF5350);
+      riskIcon = 'assets/images/high_risk.png';
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Text(
+              'Risk for\nSurgery',
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w500,
+                fontSize: 16,
+                color: Color(0xFF0D629E),
+                height: 1.2,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Image.asset('assets/images/risk.png', width: 28, height: 28),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Center(child: Image.asset(riskIcon, width: 100, height: 100)),
+        const SizedBox(height: 12),
+        Center(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            decoration: BoxDecoration(
+              color: riskColor,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              status.toUpperCase(),
+              style: const TextStyle(
+                fontFamily: 'Poppins',
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Classified last:\n$taken',
+          textAlign: TextAlign.left,
+          style: const TextStyle(
+            fontFamily: 'Poppins',
+            color: Color(0xFF45B6E8),
+            fontSize: 10,
+            height: 1.2,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
     );
   }
 }
