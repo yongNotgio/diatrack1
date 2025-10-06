@@ -301,16 +301,17 @@ class _HomeScreenState extends State<HomeScreen> {
                             color: const Color(0xFFFFB300),
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          padding: const EdgeInsets.all(20),
+                          padding: const EdgeInsets.all(12),
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Image.asset(
                                 'assets/images/doctor.png',
-                                height: 120,
-                                fit: BoxFit.contain,
+                                height: 180,
+                                width: 120,
+                                fit: BoxFit.cover,
                               ),
-                              const SizedBox(width: 16),
+                              const SizedBox(width: 10),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
