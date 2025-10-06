@@ -454,83 +454,90 @@ class _HomeScreenState extends State<HomeScreen> {
                   // Add a record card
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF4FC3F7), Color(0xFF1DA1F2)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
+                    child: GestureDetector(
+                      onTap: () async {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (context) => AddMetricsScreen(
+                                  patientId: _patientId,
+                                  phase: widget.patientData['phase'],
+                                ),
+                          ),
+                        );
+                        if (result == true) {
+                          _loadMetrics();
+                        }
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF4FC3F7), Color(0xFF1DA1F2)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(20),
                         ),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      padding: const EdgeInsets.all(20),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    _tag('BP'),
-                                    const SizedBox(width: 4),
-                                    _tag('GLUCOSE'),
-                                    const SizedBox(width: 4),
-                                    _tag('PHOTO'),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  DateFormat('MMMM d').format(DateTime.now()),
-                                  style: const TextStyle(
-                                    fontFamily: 'Poppins',
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 32,
-                                  ),
-                                ),
-                                Text(
-                                  '${DateFormat('yyyy').format(DateTime.now())} | ${DateFormat('EEEE').format(DateTime.now())} | ${DateFormat('h:mm a').format(DateTime.now())}',
-                                  style: const TextStyle(
-                                    fontFamily: 'Poppins',
-                                    color: Colors.white,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Ink(
-                            decoration: const ShapeDecoration(
-                              color: Colors.white,
-                              shape: CircleBorder(),
-                            ),
-                            child: IconButton(
-                              icon: const Icon(
-                                Icons.add,
-                                color: Color.fromARGB(255, 255, 255, 255),
-                                size: 32,
-                              ),
-                              onPressed: () async {
-                                final result = await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder:
-                                        (context) => AddMetricsScreen(
-                                          patientId: _patientId,
-                                          phase:
-                                              widget
-                                                  .patientData['phase'], // Pass phase here
+                        padding: const EdgeInsets.all(20),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Text(
+                                        'Add a record?',
+                                        style: TextStyle(
+                                          fontFamily: 'Poppins',
+                                          color: Colors.white,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
                                         ),
+                                      ),
+                                      const SizedBox(width: 3),
+                                      Image.asset(
+                                        'assets/images/card2.png',
+                                        height: 14,
+                                        fit: BoxFit.contain,
+                                      ),
+                                    ],
                                   ),
-                                );
-                                if (result == true) {
-                                  _loadMetrics();
-                                }
-                              },
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    DateFormat('MMMM d').format(DateTime.now()),
+                                    style: const TextStyle(
+                                      fontFamily: 'Poppins',
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 40,
+                                      height: 1.0,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '${DateFormat('yyyy').format(DateTime.now())} | ${DateFormat('EEEE').format(DateTime.now())} | ${DateFormat('h:mm a').format(DateTime.now())}',
+                                    style: const TextStyle(
+                                      fontFamily: 'Poppins',
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 12),
+                            Image.asset(
+                              'assets/images/add.png',
+                              height: 60,
+                              width: 60,
+                              fit: BoxFit.contain,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -540,11 +547,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         const Text(
                           'Main Menu',
                           style: TextStyle(
+                            fontFamily: 'Poppins',
                             color: Color(0xFF1DA1F2),
                             fontWeight: FontWeight.bold,
                             fontSize: 22,
@@ -687,25 +695,33 @@ class _HomeScreenState extends State<HomeScreen> {
           Container(
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
+                  color: Colors.grey.withOpacity(0.15),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
-            padding: const EdgeInsets.all(12),
-            child: Image.asset(asset, height: 40),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: Image.asset(
+                asset,
+                height: 80,
+                width: 80,
+                fit: BoxFit.cover,
+              ),
+            ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           Text(
             label,
             style: const TextStyle(
+              fontFamily: 'Poppins',
               color: Color(0xFF1DA1F2),
               fontWeight: FontWeight.w600,
-              fontSize: 14,
+              fontSize: 15,
             ),
           ),
         ],

@@ -58,6 +58,8 @@ flutter:
     - assets/images/history.png
     - assets/images/reminder.png
     - assets/images/salad.png
+    - assets/images/add.png
+    - assets/images/card2.png
     - .env
     
   fonts:
