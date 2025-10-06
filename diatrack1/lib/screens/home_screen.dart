@@ -287,7 +287,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           );
                           nextCheckup =
                               DateFormat(
-                                'MMMM d, yyyy',
+                                'MMM d, yyyy',
                               ).format(dt).toUpperCase();
                           nextCheckupTime =
                               DateFormat('h a').format(dt).toUpperCase();
