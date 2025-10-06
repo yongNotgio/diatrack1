@@ -106,11 +106,13 @@ class _HomeScreenState extends State<HomeScreen> {
           icon: const Icon(Icons.menu, color: Color(0xFF1DA1F2)),
           onPressed: () {},
         ),
-        title: Row(
-          children: [
-            Image.asset('assets/images/diatrack_logo.png', height: 32),
-            const SizedBox(width: 8),
-          ],
+        title: Padding(
+          padding: const EdgeInsets.only(right: 8.0),
+          child: Image.asset(
+            'assets/images/diatrack_logo.png',
+            height: 32,
+            fit: BoxFit.contain,
+          ),
         ),
         actions: [
           IconButton(
@@ -293,52 +295,34 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                     ),
                                     const SizedBox(height: 8),
-                                    Row(
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
-                                        Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            const Text(
-                                              'Next Checkup',
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 12,
-                                              ),
-                                            ),
-                                            Text(
-                                              nextCheckup,
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 14,
-                                              ),
-                                            ),
-                                          ],
+                                        const Text(
+                                          'Next Checkup',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                          ),
                                         ),
-                                        const SizedBox(width: 24),
-                                        Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            const Text(
-                                              'Time',
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 12,
-                                              ),
-                                            ),
-                                            Text(
-                                              nextCheckupTime.isNotEmpty
-                                                  ? nextCheckupTime
-                                                  : '-',
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 14,
-                                              ),
-                                            ),
-                                          ],
+                                        Text(
+                                          nextCheckup,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          nextCheckupTime.isNotEmpty
+                                              ? nextCheckupTime
+                                              : '-',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 14,
+                                          ),
                                         ),
                                       ],
                                     ),
