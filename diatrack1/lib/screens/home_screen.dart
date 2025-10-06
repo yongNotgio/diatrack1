@@ -91,6 +91,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Define text styles with Poppins font
+    const textTheme = TextTheme(
+      bodyLarge: TextStyle(fontFamily: 'Poppins'),
+      bodyMedium: TextStyle(fontFamily: 'Poppins'),
+      titleLarge: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold),
+      titleMedium: TextStyle(
+        fontFamily: 'Poppins',
+        fontWeight: FontWeight.w600,
+      ),
+      labelLarge: TextStyle(fontFamily: 'Poppins'),
+    );
+
     final String patientName =
         "${widget.patientData['first_name'] ?? ''} ${widget.patientData['last_name'] ?? ''}";
     final String diagnosis =
@@ -173,6 +185,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               const Text(
                                 'Welcome',
                                 style: TextStyle(
+                                  fontFamily: 'Poppins',
                                   color: Colors.grey,
                                   fontSize: 18,
                                 ),
@@ -180,6 +193,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               Text(
                                 patientName,
                                 style: const TextStyle(
+                                  fontFamily: 'Poppins',
                                   color: Color(0xFF1DA1F2),
                                   fontWeight: FontWeight.bold,
                                   fontSize: 28,
@@ -200,6 +214,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     child: Text(
                                       diagnosis.toUpperCase(),
                                       style: const TextStyle(
+                                        fontFamily: 'Poppins',
                                         color: Color(0xFFD32F2F),
                                         fontWeight: FontWeight.bold,
                                         fontSize: 12,
@@ -247,6 +262,21 @@ class _HomeScreenState extends State<HomeScreen> {
                     builder: (context, snapshot) {
                       String nextCheckup = 'No upcoming appointment';
                       String nextCheckupTime = '';
+                      String doctorLastName = '';
+                      String doctorFirstName = '';
+
+                      // Parse doctor name to split into first and last name
+                      String fullDoctorName =
+                          widget.patientData['doctor_name'] ??
+                          'Doctor Not Found';
+                      List<String> nameParts = fullDoctorName.split(' ');
+                      if (nameParts.length >= 2) {
+                        doctorFirstName = nameParts[0];
+                        doctorLastName = nameParts.sublist(1).join(' ');
+                      } else {
+                        doctorLastName = fullDoctorName;
+                      }
+
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         nextCheckup = 'Loading...';
                       } else if (snapshot.hasData && snapshot.data != null) {
@@ -255,10 +285,15 @@ class _HomeScreenState extends State<HomeScreen> {
                           final dt = DateTime.parse(
                             appt['appointment_datetime'],
                           );
-                          nextCheckup = DateFormat('MMMM d, yyyy').format(dt);
-                          nextCheckupTime = DateFormat('h:mm a').format(dt);
+                          nextCheckup =
+                              DateFormat(
+                                'MMMM d, yyyy',
+                              ).format(dt).toUpperCase();
+                          nextCheckupTime =
+                              DateFormat('h a').format(dt).toUpperCase();
                         }
                       }
+
                       return Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 24),
                         child: Container(
@@ -268,10 +303,12 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           padding: const EdgeInsets.all(20),
                           child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Image.asset(
                                 'assets/images/doctor.png',
-                                height: 80,
+                                height: 120,
+                                fit: BoxFit.contain,
                               ),
                               const SizedBox(width: 16),
                               Expanded(
@@ -281,48 +318,124 @@ class _HomeScreenState extends State<HomeScreen> {
                                     const Text(
                                       'Attending Physician',
                                       style: TextStyle(
+                                        fontFamily: 'Poppins',
                                         color: Colors.white,
-                                        fontSize: 14,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
                                       ),
                                     ),
+                                    const SizedBox(height: 4),
                                     Text(
-                                      widget.patientData['doctor_name'] ??
-                                          'Doctor Not Found',
+                                      doctorLastName.toUpperCase(),
                                       style: const TextStyle(
+                                        fontFamily: 'Poppins',
                                         color: Colors.white,
                                         fontWeight: FontWeight.bold,
-                                        fontSize: 20,
+                                        fontSize: 32,
+                                        height: 1.0,
                                       ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                    const SizedBox(height: 8),
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                    Text(
+                                      '$doctorFirstName ${doctorFirstName.isNotEmpty ? "M.D." : ""}',
+                                      style: const TextStyle(
+                                        fontFamily: 'Poppins',
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 20,
+                                        height: 1.2,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Row(
                                       children: [
-                                        const Text(
-                                          'Next Checkup',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 12,
+                                        Flexible(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              const Text(
+                                                'Next Checkup',
+                                                style: TextStyle(
+                                                  fontFamily: 'Poppins',
+                                                  color: Colors.white,
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 12,
+                                                      vertical: 8,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white
+                                                      .withOpacity(0.95),
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                ),
+                                                child: Text(
+                                                  nextCheckup,
+                                                  style: const TextStyle(
+                                                    fontFamily: 'Poppins',
+                                                    color: Color(0xFFFFB300),
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 13,
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ),
-                                        Text(
-                                          nextCheckup,
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          nextCheckupTime.isNotEmpty
-                                              ? nextCheckupTime
-                                              : '-',
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 14,
-                                          ),
+                                        const SizedBox(width: 12),
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            const Text(
+                                              'Time',
+                                              style: TextStyle(
+                                                fontFamily: 'Poppins',
+                                                color: Colors.white,
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 16,
+                                                    vertical: 8,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: Colors.white.withOpacity(
+                                                  0.95,
+                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
+                                              child: Text(
+                                                nextCheckupTime.isNotEmpty
+                                                    ? nextCheckupTime
+                                                    : '-',
+                                                style: const TextStyle(
+                                                  fontFamily: 'Poppins',
+                                                  color: Color(0xFFFFB300),
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 13,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ],
                                     ),
@@ -369,6 +482,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 Text(
                                   DateFormat('MMMM d').format(DateTime.now()),
                                   style: const TextStyle(
+                                    fontFamily: 'Poppins',
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 32,
@@ -377,6 +491,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 Text(
                                   '${DateFormat('yyyy').format(DateTime.now())} | ${DateFormat('EEEE').format(DateTime.now())} | ${DateFormat('h:mm a').format(DateTime.now())}',
                                   style: const TextStyle(
+                                    fontFamily: 'Poppins',
                                     color: Colors.white,
                                     fontSize: 14,
                                   ),
