@@ -194,16 +194,21 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
               const Text(
                 'Submit Health Metric',
                 style: TextStyle(
-                  fontSize: 22,
+                  fontFamily: 'Poppins',
+                  fontSize: 28,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1DA1F2),
+                  color: Color(0xFF0D629E),
                 ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 4),
               const Text(
                 'Log your health metrics to keep your doctor updated.',
-                style: TextStyle(fontSize: 14, color: Colors.grey),
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 12,
+                  color: Colors.grey,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 18),
@@ -216,114 +221,167 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
                   borderRadius: BorderRadius.circular(18),
                 ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     const Text(
                       'Blood Pressure',
                       style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1DA1F2),
+                        fontFamily: 'Poppins',
+                        fontSize: 25,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF0D629E),
                       ),
+                      textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 4),
                     const Text(
                       'Log your blood pressure to keep your doctor updated.',
-                      style: TextStyle(fontSize: 13, color: Colors.black54),
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 12,
+                        color: Colors.black54,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 12),
-                    Row(
+                    const SizedBox(height: 16),
+                    Column(
                       children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Systolic',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF1DA1F2),
-                                ),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              width: 80,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Systolic',
+                                    style: TextStyle(
+                                      fontFamily: 'Poppins',
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 23,
+                                      color: Color(0xFF0D629E),
+                                    ),
+                                    overflow: TextOverflow.visible,
+                                    softWrap: false,
+                                  ),
+                                  const Text(
+                                    'mmHg',
+                                    style: TextStyle(
+                                      fontFamily: 'Poppins',
+                                      fontSize: 14,
+                                      color: Color(0xFF0D629E),
+                                    ),
+                                    overflow: TextOverflow.visible,
+                                    softWrap: false,
+                                  ),
+                                ],
                               ),
-                              const SizedBox(height: 4),
-                              TextFormField(
+                            ),
+                            const SizedBox(width: 24),
+                            const SizedBox(width: 30),
+                            SizedBox(
+                              width: 190,
+                              child: TextFormField(
                                 controller: _systolicController,
                                 decoration: InputDecoration(
                                   isDense: true,
                                   contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 10,
+                                    horizontal: 16,
+                                    vertical: 14,
                                   ),
                                   filled: true,
                                   fillColor: Colors.white,
                                   border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8),
+                                    borderRadius: BorderRadius.circular(12),
                                     borderSide: BorderSide(
-                                      color: Color(0xFF1DA1F2),
+                                      color: Color(0xFF0D629E),
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(
+                                      color: Color(0xFF0D629E),
                                     ),
                                   ),
                                 ),
+                                style: TextStyle(fontFamily: 'Poppins'),
                                 keyboardType: TextInputType.number,
                                 inputFormatters: [
                                   FilteringTextInputFormatter.digitsOnly,
                                 ],
                               ),
-                              const SizedBox(height: 2),
-                              const Text(
-                                'mmHg',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Diastolic',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF1DA1F2),
-                                ),
+                        const SizedBox(height: 16),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              width: 80,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Diastolic',
+                                    style: TextStyle(
+                                      fontFamily: 'Poppins',
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 23,
+                                      color: Color(0xFF0D629E),
+                                    ),
+                                    overflow: TextOverflow.visible,
+                                    softWrap: false,
+                                  ),
+                                  const Text(
+                                    'mmHg',
+                                    style: TextStyle(
+                                      fontFamily: 'Poppins',
+                                      fontSize: 14,
+                                      color: Color(0xFF0D629E),
+                                    ),
+                                    overflow: TextOverflow.visible,
+                                    softWrap: false,
+                                  ),
+                                ],
                               ),
-                              const SizedBox(height: 4),
-                              TextFormField(
+                            ),
+                            const SizedBox(width: 24),
+                            const SizedBox(width: 30),
+                            SizedBox(
+                              width: 190,
+                              child: TextFormField(
                                 controller: _diastolicController,
                                 decoration: InputDecoration(
                                   isDense: true,
                                   contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 10,
+                                    horizontal: 16,
+                                    vertical: 14,
                                   ),
                                   filled: true,
                                   fillColor: Colors.white,
                                   border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8),
+                                    borderRadius: BorderRadius.circular(12),
                                     borderSide: BorderSide(
-                                      color: Color(0xFF1DA1F2),
+                                      color: Color(0xFF0D629E),
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(
+                                      color: Color(0xFF0D629E),
                                     ),
                                   ),
                                 ),
+                                style: TextStyle(fontFamily: 'Poppins'),
                                 keyboardType: TextInputType.number,
                                 inputFormatters: [
                                   FilteringTextInputFormatter.digitsOnly,
                                 ],
                               ),
-                              const SizedBox(height: 2),
-                              const Text(
-                                'mmHg',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -339,39 +397,47 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
                   borderRadius: BorderRadius.circular(18),
                 ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     const Text(
                       'Blood Glucose',
                       style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1DA1F2),
+                        fontFamily: 'Poppins',
+                        fontSize: 25,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF0D629E),
                       ),
+                      textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 4),
                     const Text(
                       'Log your fasting blood sugar to keep your doctor updated.',
-                      style: TextStyle(fontSize: 13, color: Colors.black54),
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 12,
+                        color: Colors.black54,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
                     TextFormField(
                       controller: _glucoseController,
                       decoration: InputDecoration(
                         isDense: true,
                         contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
+                          horizontal: 16,
+                          vertical: 14,
                         ),
                         filled: true,
                         fillColor: Colors.white,
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(12),
                           borderSide: const BorderSide(
                             color: Color(0xFF1DA1F2),
                           ),
                         ),
                       ),
+                      style: TextStyle(fontFamily: 'Poppins'),
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
@@ -392,22 +458,29 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
                     borderRadius: BorderRadius.circular(18),
                   ),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       const Text(
                         'Wound Photo',
                         style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1DA1F2),
+                          fontFamily: 'Poppins',
+                          fontSize: 25,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF0D629E),
                         ),
+                        textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 4),
                       const Text(
                         'Please attach a wound image to update your doctor on its progress.',
-                        style: TextStyle(fontSize: 13, color: Colors.black54),
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 12,
+                          color: Colors.black54,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 16),
                       GestureDetector(
                         onTap: _showImagePickerOptions,
                         child: DottedBorder(
@@ -418,7 +491,7 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
                           strokeWidth: 1.5,
                           child: Container(
                             width: double.infinity,
-                            height: 120,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
                             alignment: Alignment.center,
                             decoration: BoxDecoration(
                               color: Colors.white,
@@ -426,6 +499,7 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
                             ),
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.min,
                               children: [
                                 const Icon(
                                   Icons.cloud_upload,
@@ -438,33 +512,97 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
                                       ? 'Image Selected'
                                       : 'Click to Upload',
                                   style: const TextStyle(
+                                    fontFamily: 'Poppins',
                                     color: Color(0xFF1DA1F2),
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
+                                if (_woundImageFile != null) ...[
+                                  const SizedBox(height: 16),
+                                  Stack(
+                                    alignment: Alignment.topRight,
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Image.file(
+                                          File(_woundImageFile!.path),
+                                          width: 200,
+                                          height: 200,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                      Positioned(
+                                        top: 4,
+                                        right: 4,
+                                        child: GestureDetector(
+                                          onTap: () {
+                                            setState(() {
+                                              _woundImageFile = null;
+                                            });
+                                          },
+                                          child: Container(
+                                            padding: const EdgeInsets.all(4),
+                                            decoration: BoxDecoration(
+                                              color: Colors.red,
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: const Icon(
+                                              Icons.close,
+                                              color: Colors.white,
+                                              size: 20,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                                if (_woundPhotoUrl != null &&
+                                    _woundImageFile == null) ...[
+                                  const SizedBox(height: 16),
+                                  Stack(
+                                    alignment: Alignment.topRight,
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Image.network(
+                                          _woundPhotoUrl!,
+                                          width: 200,
+                                          height: 200,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                      Positioned(
+                                        top: 4,
+                                        right: 4,
+                                        child: GestureDetector(
+                                          onTap: () {
+                                            setState(() {
+                                              _woundPhotoUrl = null;
+                                            });
+                                          },
+                                          child: Container(
+                                            padding: const EdgeInsets.all(4),
+                                            decoration: BoxDecoration(
+                                              color: Colors.red,
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: const Icon(
+                                              Icons.close,
+                                              color: Colors.white,
+                                              size: 20,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ],
                             ),
                           ),
                         ),
                       ),
-                      if (_woundImageFile != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
-                          child: Image.file(
-                            File(_woundImageFile!.path),
-                            height: 80,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      if (_woundPhotoUrl != null && _woundImageFile == null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
-                          child: Image.network(
-                            _woundPhotoUrl!,
-                            height: 80,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
                     ],
                   ),
                 ),
@@ -478,7 +616,8 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
                     const Text(
                       'Additional notes:',
                       style: TextStyle(
-                        fontWeight: FontWeight.bold,
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w600,
                         color: Color(0xFF1DA1F2),
                         fontSize: 15,
                       ),
@@ -489,6 +628,7 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
                       decoration: const InputDecoration(
                         hintText:
                             'Inform your attending physician of any complaint or discomfort',
+                        hintStyle: TextStyle(fontFamily: 'Poppins'),
                         filled: true,
                         fillColor: Colors.white,
                         border: OutlineInputBorder(
@@ -500,6 +640,7 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
                           vertical: 14,
                         ),
                       ),
+                      style: TextStyle(fontFamily: 'Poppins'),
                       maxLines: 2,
                     ),
                   ],
@@ -532,8 +673,10 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
                       child: const Text(
                         'Save Log',
                         style: TextStyle(
-                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.w600,
                           fontSize: 16,
+                          color: Colors.white,
                         ),
                       ),
                     ),
@@ -541,7 +684,11 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
               const SizedBox(height: 10),
               const Text(
                 'Your submitted data is securely stored and accessible in your health history.',
-                style: TextStyle(fontSize: 11, color: Colors.grey),
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 11,
+                  color: Colors.grey,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 10),
