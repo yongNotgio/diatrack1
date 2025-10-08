@@ -169,35 +169,39 @@ class _MedicationScreenState extends State<MedicationScreen> {
                         child: Text(
                           'Medications',
                           style: TextStyle(
+                            fontFamily: 'Poppins',
                             color: Color(0xFF1DA1F2),
-                            fontSize: 30,
+                            fontSize: 32,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
                     ),
 
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 8),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
                       child: Text(
-                        'Please tick on the check marks to indicate you have taken the medicine',
+                        'Please tick on the check marks to indicate you took the medicine',
                         style: TextStyle(
+                          fontFamily: 'Poppins',
                           color: Colors.grey[600],
-                          fontSize: 13,
+                          fontSize: 14,
                           fontWeight: FontWeight.w400,
                         ),
+                        textAlign: TextAlign.center,
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 20),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
                       child: Text(
                         _dateHeader(today),
                         style: const TextStyle(
+                          fontFamily: 'Poppins',
                           color: Color(0xFF1DA1F2),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 25,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 24,
                         ),
                       ),
                     ),
@@ -206,14 +210,15 @@ class _MedicationScreenState extends State<MedicationScreen> {
                       Padding(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 24,
-                          vertical: 8,
+                          vertical: 6,
                         ),
                         child: Text(
                           timeLabels[idx],
                           style: const TextStyle(
+                            fontFamily: 'Poppins',
                             color: Color(0xFF1DA1F2),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 17,
                           ),
                         ),
                       ),
@@ -230,41 +235,46 @@ class _MedicationScreenState extends State<MedicationScreen> {
     return meds.map((med) {
       final isTaken = med.taken;
       return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
         child: Container(
           decoration: BoxDecoration(
-            color: isTaken ? const Color(0xFFB3E5FC) : const Color(0xFF1DA1F2),
-            borderRadius: BorderRadius.circular(18),
+            color: isTaken ? const Color(0xFFDEF4FF) : const Color(0xFF1FAAED),
+            borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.04),
-                blurRadius: 6,
+                color: Colors.black.withOpacity(0.06),
+                blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
             ],
           ),
           child: ListTile(
             contentPadding: const EdgeInsets.symmetric(
-              horizontal: 20,
-              vertical: 8,
+              horizontal: 24,
+              vertical: 14,
             ),
             title: Text(
               med.name,
               style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-                fontSize: 16,
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w600,
+                color: isTaken ? const Color(0xFF0D629E) : Colors.white,
+                fontSize: 22,
               ),
             ),
             subtitle: Text(
               med.dosage,
               style: TextStyle(
-                color: Colors.white.withOpacity(0.9),
-                fontSize: 14,
+                fontFamily: 'Poppins',
+                color:
+                    isTaken
+                        ? const Color(0xFF0D629E).withOpacity(0.8)
+                        : Colors.white.withOpacity(0.95),
+                fontSize: 15,
               ),
             ),
             trailing: Container(
-              width: 60,
+              width: 80,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 mainAxisSize: MainAxisSize.min,
@@ -273,17 +283,18 @@ class _MedicationScreenState extends State<MedicationScreen> {
                     onTap: isTaken ? null : () => _markTaken(med.id),
                     child: Icon(
                       isTaken ? Icons.check_circle : Icons.check_circle_outline,
-                      color: Colors.white,
-                      size: 24,
+                      color: isTaken ? const Color(0xFF0D629E) : Colors.white,
+                      size: 32,
                     ),
                   ),
                   SizedBox(height: 4),
                   Text(
-                    isTaken ? 'Done' : 'Not Taken',
+                    isTaken ? 'Done Taking' : 'Not Taken',
                     style: TextStyle(
-                      color: Colors.white,
+                      fontFamily: 'Poppins',
+                      color: isTaken ? const Color(0xFF0D629E) : Colors.white,
                       fontWeight: FontWeight.bold,
-                      fontSize: 11,
+                      fontSize: 10,
                     ),
                     textAlign: TextAlign.center,
                     maxLines: 2,
