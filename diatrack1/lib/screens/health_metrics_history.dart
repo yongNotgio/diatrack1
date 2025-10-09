@@ -353,7 +353,7 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: const Color(0xFFF2FBFF),
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -376,8 +376,8 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
                 Text(
                   DateFormatter.formatDateTime(metric.submissionDate),
                   style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
                     color: Color(0xFF0D629E),
                     fontFamily: 'Poppins',
                   ),
@@ -385,15 +385,21 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
                 Row(
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.edit, size: 18),
-                      color: const Color(0xFF6B7280),
+                      icon: Image.asset(
+                        'assets/images/edit.png',
+                        width: 18,
+                        height: 18,
+                      ),
                       onPressed: () {
                         // TODO: Implement edit functionality
                       },
                     ),
                     IconButton(
-                      icon: const Icon(Icons.delete, size: 18),
-                      color: const Color(0xFF6B7280),
+                      icon: Image.asset(
+                        'assets/images/delete.png',
+                        width: 18,
+                        height: 18,
+                      ),
                       onPressed: () async {
                         final confirmed = await showDialog<bool>(
                           context: context,
@@ -471,7 +477,7 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Left Column - Blood Glucose
+                // Left Column - Blood Glucose and Classification
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -479,7 +485,7 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
                       const Text(
                         'Blood Glucose',
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 15,
                           fontWeight: FontWeight.w500,
                           color: Color(0xFF0D629E),
                           fontFamily: 'Poppins',
@@ -489,9 +495,33 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
                       Text(
                         '${metric.bloodGlucose?.toStringAsFixed(0) ?? '-'}',
                         style: const TextStyle(
-                          fontSize: 64,
-                          fontWeight: FontWeight.w700,
+                          fontSize: 48,
+                          fontWeight: FontWeight.w600,
                           color: Color(0xFF0D629E),
+                          fontFamily: 'Poppins',
+                          height: 1.0,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      // Classification section
+                      const Text(
+                        'Classification',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFF0D629E),
+                          fontFamily: 'Poppins',
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        (metric.riskClassification ?? 'UNKNOWN').toUpperCase(),
+                        style: TextStyle(
+                          fontSize: 48,
+                          fontWeight: FontWeight.w500,
+                          color: getRiskColor(
+                            metric.riskClassification ?? 'UNKNOWN',
+                          ),
                           fontFamily: 'Poppins',
                           height: 1.0,
                         ),
@@ -508,7 +538,7 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
                       const Text(
                         'Blood Pressure',
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 15,
                           fontWeight: FontWeight.w500,
                           color: Color(0xFF0D629E),
                           fontFamily: 'Poppins',
@@ -522,8 +552,8 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
                           Text(
                             '${metric.bpSystolic ?? '-'}',
                             style: const TextStyle(
-                              fontSize: 64,
-                              fontWeight: FontWeight.w700,
+                              fontSize: 48,
+                              fontWeight: FontWeight.w600,
                               color: Color(0xFF0D629E),
                               fontFamily: 'Poppins',
                               height: 1.0,
@@ -566,8 +596,8 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
                           Text(
                             '${metric.bpDiastolic ?? '-'}',
                             style: const TextStyle(
-                              fontSize: 64,
-                              fontWeight: FontWeight.w700,
+                              fontSize: 48,
+                              fontWeight: FontWeight.w600,
                               color: Color(0xFF0D629E),
                               fontFamily: 'Poppins',
                               height: 1.0,
@@ -603,34 +633,6 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
                         ],
                       ),
                     ],
-                  ),
-                ),
-              ],
-            ),
-
-            // Classification section (full width)
-            const SizedBox(height: 20),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Classification',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF0D629E),
-                    fontFamily: 'Poppins',
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  (metric.riskClassification ?? 'UNKNOWN').toUpperCase(),
-                  style: TextStyle(
-                    fontSize: 64,
-                    fontWeight: FontWeight.w700,
-                    color: getRiskColor(metric.riskClassification ?? 'UNKNOWN'),
-                    fontFamily: 'Poppins',
-                    height: 1.0,
                   ),
                 ),
               ],

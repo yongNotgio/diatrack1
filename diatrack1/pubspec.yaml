@@ -72,6 +72,8 @@ flutter:
     - assets/images/medium_risk.png
     - assets/images/high_risk.png
     - assets/images/diatrack_icon.png
+    - assets/images/edit.png
+    - assets/images/delete.png
     - .env
     
   fonts:

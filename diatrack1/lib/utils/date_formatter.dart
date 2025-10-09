@@ -1,12 +1,28 @@
 class DateFormatter {
   static String formatDate(DateTime date) {
-    return '${date.month}/${date.day}/${date.year}';
+    final months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+    return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }
 
   static String formatDateTime(DateTime date) {
-    final hour = date.hour.toString().padLeft(2, '0');
     final minute = date.minute.toString().padLeft(2, '0');
-    return '${formatDate(date)} | $hour:$minute';
+    final ampm = date.hour >= 12 ? 'PM' : 'AM';
+    final hour12 =
+        date.hour > 12 ? date.hour - 12 : (date.hour == 0 ? 12 : date.hour);
+    return '${formatDate(date)} | $hour12:$minute $ampm';
   }
 
   static String formatDateWithDay(DateTime date) {
@@ -20,13 +36,12 @@ class DateFormatter {
       'Sunday',
     ];
     final dayName = days[date.weekday - 1];
-    final hour = date.hour.toString().padLeft(2, '0');
     final minute = date.minute.toString().padLeft(2, '0');
     final ampm = date.hour >= 12 ? 'PM' : 'AM';
     final hour12 =
         date.hour > 12 ? date.hour - 12 : (date.hour == 0 ? 12 : date.hour);
 
-    return '${date.month}/${date.day}/${date.year}, $dayName | $hour12:${minute} $ampm';
+    return '${formatDate(date)}, $dayName | $hour12:${minute} $ampm';
   }
 
   static String formatShortDate(DateTime date) {
