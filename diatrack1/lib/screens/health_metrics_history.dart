@@ -6,7 +6,7 @@ import '../widgets/overview_cards.dart';
 import '../widgets/blood_sugar_chart.dart';
 import '../widgets/blood_pressure_chart.dart';
 import '../widgets/wound_photos_section.dart';
-import '../widgets/metrics_table.dart';
+
 
 class HealthMetricsHistory extends StatefulWidget {
   final String patientId;
@@ -647,77 +647,8 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
     BuildContext context,
     List<HealthMetric> metrics,
   ) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder:
-          (context) => DraggableScrollableSheet(
-            initialChildSize: 0.9,
-            maxChildSize: 0.95,
-            minChildSize: 0.5,
-            builder:
-                (context, scrollController) => Container(
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.vertical(
-                      top: Radius.circular(20),
-                    ),
-                  ),
-                  child: Column(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'Health Metrics Tables',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFF0D629E),
-                                fontFamily: 'Poppins',
-                              ),
-                            ),
-                            IconButton(
-                              onPressed: () => Navigator.pop(context),
-                              icon: const Icon(Icons.close),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        child: SingleChildScrollView(
-                          controller: scrollController,
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            children: [
-                              MetricsTable(
-                                metrics: metrics,
-                                title: 'Blood Glucose Table',
-                                metricType: 'glucose',
-                              ),
-                              const SizedBox(height: 24),
-                              MetricsTable(
-                                metrics: metrics,
-                                title: 'Blood Pressure Table',
-                                metricType: 'pressure',
-                              ),
-                              const SizedBox(height: 24),
-                              MetricsTable(
-                                metrics: metrics,
-                                title: 'Risk Class Table',
-                                metricType: 'risk',
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-          ),
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => _TablesScreen(metrics: metrics)),
     );
   }
 
@@ -744,5 +675,766 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
     if (counts.isEmpty) return 'UNKNOWN';
 
     return counts.entries.reduce((a, b) => a.value > b.value ? a : b).key;
+  }
+}
+
+class _TablesScreen extends StatefulWidget {
+  final List<HealthMetric> metrics;
+
+  const _TablesScreen({Key? key, required this.metrics}) : super(key: key);
+
+  @override
+  State<_TablesScreen> createState() => _TablesScreenState();
+}
+
+class _TablesScreenState extends State<_TablesScreen> {
+  String _searchQuery = '';
+  String _currentFilter = 'General Summary'; // Default filter
+
+  final List<String> _filterOptions = [
+    'General Summary',
+    'Blood Glucose Table',
+    'Blood Pressure Table',
+    'Risk Class Table',
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFF),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF0D629E)),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          'Health Metrics History',
+          style: TextStyle(
+            color: Color(0xFF0D629E),
+            fontWeight: FontWeight.w600,
+            fontFamily: 'Poppins',
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh, color: Color(0xFF1DA1F2)),
+            onPressed: () {
+              setState(() {});
+            },
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          // Search Bar
+          Container(
+            color: Colors.white,
+            padding: const EdgeInsets.all(16),
+            child: TextField(
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                });
+              },
+              decoration: InputDecoration(
+                hintText: 'Search',
+                prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                filled: true,
+                fillColor: const Color(0xFFF5F5F5),
+                contentPadding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+          ),
+
+          // Filter and Export buttons
+          Container(
+            color: Colors.white,
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      _showFilterDialog();
+                    },
+                    icon: const Icon(Icons.filter_list, size: 18),
+                    label: Text(
+                      _currentFilter == 'General Summary'
+                          ? 'Filter'
+                          : _currentFilter,
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF0D629E),
+                      side: const BorderSide(color: Color(0xFF0D629E)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {},
+                    icon: const Icon(Icons.download, size: 18),
+                    label: const Text('Export'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF0D629E),
+                      side: const BorderSide(color: Color(0xFF0D629E)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Current Filter Label
+          if (_currentFilter != 'General Summary')
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              color: const Color(0xFFF2FBFF),
+              child: Text(
+                _currentFilter,
+                style: const TextStyle(
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF0D629E),
+                  fontSize: 16,
+                ),
+              ),
+            ),
+
+          // Content Area
+          Expanded(child: _buildCurrentView()),
+        ],
+      ),
+    );
+  }
+
+  void _showFilterDialog() {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text(
+              'Filter Tables',
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children:
+                  _filterOptions
+                      .map(
+                        (option) => ListTile(
+                          title: Text(
+                            option,
+                            style: const TextStyle(fontFamily: 'Poppins'),
+                          ),
+                          leading: Radio<String>(
+                            value: option,
+                            groupValue: _currentFilter,
+                            onChanged: (value) {
+                              setState(() {
+                                _currentFilter = value!;
+                              });
+                              Navigator.pop(context);
+                            },
+                          ),
+                        ),
+                      )
+                      .toList(),
+            ),
+          ),
+    );
+  }
+
+  Widget _buildCurrentView() {
+    switch (_currentFilter) {
+      case 'General Summary':
+        return _buildGeneralSummaryView();
+      case 'Blood Glucose Table':
+        return _buildSpecificTable('glucose');
+      case 'Blood Pressure Table':
+        return _buildSpecificTable('pressure');
+      case 'Risk Class Table':
+        return _buildSpecificTable('risk');
+      default:
+        return _buildGeneralSummaryView();
+    }
+  }
+
+  Widget _buildGeneralSummaryView() {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: const Color(0xFFE5E5E5)),
+        ),
+        child: Column(
+          children: [
+            // Header
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: const BoxDecoration(
+                color: Color(0xFFF2FBFF),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(8)),
+              ),
+              child: Row(
+                children: [
+                  const Text(
+                    'Table',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontFamily: 'Poppins',
+                      fontSize: 14,
+                    ),
+                  ),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {});
+                    },
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.refresh, size: 16, color: Color(0xFF0D629E)),
+                        const SizedBox(width: 4),
+                        const Text(
+                          'Refresh',
+                          style: TextStyle(
+                            color: Color(0xFF0D629E),
+                            fontFamily: 'Poppins',
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Table Headers
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: const BoxDecoration(
+                border: Border(bottom: BorderSide(color: Color(0xFFE5E5E5))),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: Text(
+                      'Entry ID',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontFamily: 'Poppins',
+                        fontSize: 12,
+                        color: Colors.grey[700],
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: Text(
+                      'Date and Time',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontFamily: 'Poppins',
+                        fontSize: 12,
+                        color: Colors.grey[700],
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 1,
+                    child: Text(
+                      'Blood Glucose',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontFamily: 'Poppins',
+                        fontSize: 12,
+                        color: Colors.grey[700],
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 1,
+                    child: Text(
+                      'Blood Pressure',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontFamily: 'Poppins',
+                        fontSize: 12,
+                        color: Colors.grey[700],
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 1,
+                    child: Text(
+                      'Risk Classification',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontFamily: 'Poppins',
+                        fontSize: 12,
+                        color: Colors.grey[700],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Table Content
+            Expanded(
+              child: ListView.builder(
+                itemCount: widget.metrics.length,
+                itemBuilder: (context, index) {
+                  final metric = widget.metrics[index];
+                  return Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color:
+                              index == widget.metrics.length - 1
+                                  ? Colors.transparent
+                                  : const Color(0xFFE5E5E5),
+                        ),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          flex: 1,
+                          child: Text(
+                            '#${1000 + index}',
+                            style: const TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            DateFormatter.formatDateTime(metric.submissionDate),
+                            style: const TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 1,
+                          child: Text(
+                            '${metric.bloodGlucose?.toStringAsFixed(0) ?? '--'} mg/dL',
+                            style: const TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 1,
+                          child: Text(
+                            '${metric.bpSystolic ?? '--'}/${metric.bpDiastolic ?? '--'}',
+                            style: const TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 1,
+                          child: Text(
+                            (metric.riskClassification ?? 'UNKNOWN')
+                                .toUpperCase(),
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: getRiskColor(
+                                metric.riskClassification ?? 'UNKNOWN',
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSpecificTable(String metricType) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: const Color(0xFFE5E5E5)),
+        ),
+        child: Column(
+          children: [
+            // Header
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: const BoxDecoration(
+                color: Color(0xFFF2FBFF),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(8)),
+              ),
+              child: Row(
+                children: [
+                  const Text(
+                    'Table',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontFamily: 'Poppins',
+                      fontSize: 14,
+                    ),
+                  ),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {});
+                    },
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.refresh, size: 16, color: Color(0xFF0D629E)),
+                        const SizedBox(width: 4),
+                        const Text(
+                          'Refresh',
+                          style: TextStyle(
+                            color: Color(0xFF0D629E),
+                            fontFamily: 'Poppins',
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Table Headers
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: const BoxDecoration(
+                border: Border(bottom: BorderSide(color: Color(0xFFE5E5E5))),
+              ),
+              child: _buildTableHeaders(metricType),
+            ),
+
+            // Table Content
+            Expanded(
+              child: ListView.builder(
+                itemCount: widget.metrics.length,
+                itemBuilder: (context, index) {
+                  final metric = widget.metrics[index];
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: index == widget.metrics.length - 1
+                              ? Colors.transparent
+                              : const Color(0xFFE5E5E5),
+                        ),
+                      ),
+                    ),
+                    child: _buildTableRow(metric, index, metricType),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTableHeaders(String metricType) {
+    switch (metricType) {
+      case 'glucose':
+        return Row(
+          children: [
+            Expanded(
+              flex: 1,
+              child: Text(
+                'Entry ID',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontFamily: 'Poppins',
+                  fontSize: 12,
+                  color: Colors.grey[700],
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 2,
+              child: Text(
+                'Date and Time',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontFamily: 'Poppins',
+                  fontSize: 12,
+                  color: Colors.grey[700],
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 1,
+              child: Text(
+                'Blood Glucose',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontFamily: 'Poppins',
+                  fontSize: 12,
+                  color: Colors.grey[700],
+                ),
+              ),
+            ),
+          ],
+        );
+      case 'pressure':
+        return Row(
+          children: [
+            Expanded(
+              flex: 1,
+              child: Text(
+                'Entry ID',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontFamily: 'Poppins',
+                  fontSize: 12,
+                  color: Colors.grey[700],
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 2,
+              child: Text(
+                'Date and Time',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontFamily: 'Poppins',
+                  fontSize: 12,
+                  color: Colors.grey[700],
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 1,
+              child: Text(
+                'Blood Pressure',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontFamily: 'Poppins',
+                  fontSize: 12,
+                  color: Colors.grey[700],
+                ),
+              ),
+            ),
+          ],
+        );
+      case 'risk':
+        return Row(
+          children: [
+            Expanded(
+              flex: 1,
+              child: Text(
+                'Entry ID',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontFamily: 'Poppins',
+                  fontSize: 12,
+                  color: Colors.grey[700],
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 2,
+              child: Text(
+                'Date and Time',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontFamily: 'Poppins',
+                  fontSize: 12,
+                  color: Colors.grey[700],
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 1,
+              child: Text(
+                'Risk Class',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontFamily: 'Poppins',
+                  fontSize: 12,
+                  color: Colors.grey[700],
+                ),
+              ),
+            ),
+          ],
+        );
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+
+  Widget _buildTableRow(HealthMetric metric, int index, String metricType) {
+    switch (metricType) {
+      case 'glucose':
+        return Row(
+          children: [
+            Expanded(
+              flex: 1,
+              child: Text(
+                '#${1000 + index}',
+                style: const TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 12,
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 2,
+              child: Text(
+                DateFormatter.formatDateTime(metric.submissionDate),
+                style: const TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 12,
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 1,
+              child: Text(
+                '${metric.bloodGlucose?.toStringAsFixed(0) ?? '--'} mg/dL',
+                style: const TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ],
+        );
+      case 'pressure':
+        return Row(
+          children: [
+            Expanded(
+              flex: 1,
+              child: Text(
+                '#${1000 + index}',
+                style: const TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 12,
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 2,
+              child: Text(
+                DateFormatter.formatDateTime(metric.submissionDate),
+                style: const TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 12,
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 1,
+              child: Text(
+                '${metric.bpSystolic ?? '--'}/${metric.bpDiastolic ?? '--'}',
+                style: const TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ],
+        );
+      case 'risk':
+        return Row(
+          children: [
+            Expanded(
+              flex: 1,
+              child: Text(
+                '#${1000 + index}',
+                style: const TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 12,
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 2,
+              child: Text(
+                DateFormatter.formatDateTime(metric.submissionDate),
+                style: const TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 12,
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 1,
+              child: Text(
+                (metric.riskClassification ?? 'UNKNOWN').toUpperCase(),
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: getRiskColor(metric.riskClassification ?? 'UNKNOWN'),
+                ),
+              ),
+            ),
+          ],
+        );
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+
+  Color getRiskColor(String risk) {
+    switch (risk.toLowerCase()) {
+      case 'low':
+        return const Color(0xFF19AC4A);
+      case 'medium':
+        return const Color(0xFF199DAC);
+      case 'high':
+        return const Color(0xFFAC191F);
+      default:
+        return Colors.grey;
+    }
   }
 }
