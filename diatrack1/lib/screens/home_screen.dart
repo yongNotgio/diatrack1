@@ -650,7 +650,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   unit: '',
                                   taken: date,
                                   status:
-                                      widget.patientData['risk_classification']
+                                      metric['risk_classification']
                                           ?.toString()
                                           .toUpperCase() ??
                                       'N/A',

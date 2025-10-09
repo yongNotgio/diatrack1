@@ -72,7 +72,8 @@ class _MetricsTableState extends State<MetricsTable> {
                     systolic.contains(_searchQuery) ||
                     diastolic.contains(_searchQuery);
               case 'risk':
-                final risk = metric.riskClassification.toLowerCase();
+                final risk =
+                    (metric.riskClassification ?? 'unknown').toLowerCase();
                 return dateStr.contains(_searchQuery.toLowerCase()) ||
                     entryId.contains(_searchQuery.toLowerCase()) ||
                     risk.contains(_searchQuery.toLowerCase());
@@ -123,7 +124,9 @@ class _MetricsTableState extends State<MetricsTable> {
               }
               break;
             case 'risk':
-              cmp = a.riskClassification.compareTo(b.riskClassification);
+              cmp = (a.riskClassification ?? 'UNKNOWN').compareTo(
+                b.riskClassification ?? 'UNKNOWN',
+              );
               break;
             default:
               cmp = 0;
@@ -466,7 +469,7 @@ class _MetricsTableState extends State<MetricsTable> {
         return '${metric.bpSystolic ?? '-'}/\n${metric.bpDiastolic ?? '-'}';
       case 'risk':
         // Break long risk classifications into multiple lines
-        final risk = metric.riskClassification;
+        final risk = metric.riskClassification ?? 'UNKNOWN';
         if (risk.length > 10) {
           final words = risk.split(' ');
           if (words.length > 1) {

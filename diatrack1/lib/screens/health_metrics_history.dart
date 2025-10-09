@@ -467,117 +467,152 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
             ),
             const SizedBox(height: 16),
 
-            // Left side - Blood Glucose
+            // Two-column layout for Blood Glucose and Blood Pressure
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Left Column - Blood Glucose
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Blood Glucose',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFF0D629E),
+                          fontFamily: 'Poppins',
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '${metric.bloodGlucose?.toStringAsFixed(0) ?? '-'}',
+                        style: const TextStyle(
+                          fontSize: 64,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF0D629E),
+                          fontFamily: 'Poppins',
+                          height: 1.0,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Right Column - Blood Pressure
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Blood Pressure',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFF0D629E),
+                          fontFamily: 'Poppins',
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      // Systolic
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            '${metric.bpSystolic ?? '-'}',
+                            style: const TextStyle(
+                              fontSize: 64,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF0D629E),
+                              fontFamily: 'Poppins',
+                              height: 1.0,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'SYS',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                    color: Color(0xFF0D629E),
+                                    fontFamily: 'Poppins',
+                                  ),
+                                ),
+                                Text(
+                                  'mmHg',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w400,
+                                    color: Colors.grey[600],
+                                    fontFamily: 'Poppins',
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      // Diastolic
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            '${metric.bpDiastolic ?? '-'}',
+                            style: const TextStyle(
+                              fontSize: 64,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF0D629E),
+                              fontFamily: 'Poppins',
+                              height: 1.0,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'DIA',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                    color: Color(0xFF0D629E),
+                                    fontFamily: 'Poppins',
+                                  ),
+                                ),
+                                Text(
+                                  'mmHg',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w400,
+                                    color: Colors.grey[600],
+                                    fontFamily: 'Poppins',
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+            // Classification section (full width)
+            const SizedBox(height: 20),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Blood Glucose',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF0D629E),
-                    fontFamily: 'Poppins',
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '${metric.bloodGlucose?.toStringAsFixed(0) ?? '-'}',
-                  style: const TextStyle(
-                    fontSize: 48,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF0D629E),
-                    fontFamily: 'Poppins',
-                    height: 1.0,
-                  ),
-                ),
-
-                // Blood Pressure section
-                const SizedBox(height: 16),
-                const Text(
-                  'Blood Pressure',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF0D629E),
-                    fontFamily: 'Poppins',
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Text(
-                      '${metric.bpSystolic ?? '-'}',
-                      style: const TextStyle(
-                        fontSize: 48,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF0D629E),
-                        fontFamily: 'Poppins',
-                        height: 1.0,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Column(
-                      children: [
-                        const Text(
-                          'SYS',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w500,
-                            color: Color(0xFF0D629E),
-                            fontFamily: 'Poppins',
-                          ),
-                        ),
-                        Text(
-                          'mmHg',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w400,
-                            color: Colors.grey[600],
-                            fontFamily: 'Poppins',
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(width: 24),
-                    Text(
-                      '${metric.bpDiastolic ?? '-'}',
-                      style: const TextStyle(
-                        fontSize: 48,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF0D629E),
-                        fontFamily: 'Poppins',
-                        height: 1.0,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Column(
-                      children: [
-                        const Text(
-                          'DIA',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w500,
-                            color: Color(0xFF0D629E),
-                            fontFamily: 'Poppins',
-                          ),
-                        ),
-                        Text(
-                          'mmHg',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w400,
-                            color: Colors.grey[600],
-                            fontFamily: 'Poppins',
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-
-                // Classification section
-                const SizedBox(height: 16),
                 const Text(
                   'Classification',
                   style: TextStyle(
@@ -587,13 +622,13 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
                     fontFamily: 'Poppins',
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 8),
                 Text(
-                  metric.riskClassification.toUpperCase(),
+                  (metric.riskClassification ?? 'UNKNOWN').toUpperCase(),
                   style: TextStyle(
-                    fontSize: 48,
+                    fontSize: 64,
                     fontWeight: FontWeight.w700,
-                    color: getRiskColor(metric.riskClassification),
+                    color: getRiskColor(metric.riskClassification ?? 'UNKNOWN'),
                     fontFamily: 'Poppins',
                     height: 1.0,
                   ),
@@ -692,7 +727,12 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
   }
 
   String _getMostCommonRiskClassification(List<HealthMetric> metrics) {
-    final classifications = metrics.map((m) => m.riskClassification).toList();
+    final classifications =
+        metrics
+            .map((m) => m.riskClassification)
+            .where((classification) => classification != null)
+            .cast<String>()
+            .toList();
     final counts = <String, int>{};
 
     for (final classification in classifications) {

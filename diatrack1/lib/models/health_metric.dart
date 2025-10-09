@@ -8,6 +8,7 @@ class HealthMetric {
   final String? woundPhotoUrl;
   final String? foodPhotoUrl;
   final String? notes;
+  final String? riskClassification;
   final DateTime submissionDate;
   final DateTime updatedAt;
 
@@ -21,6 +22,7 @@ class HealthMetric {
     this.woundPhotoUrl,
     this.foodPhotoUrl,
     this.notes,
+    this.riskClassification,
     required this.submissionDate,
     required this.updatedAt,
   });
@@ -36,6 +38,7 @@ class HealthMetric {
       woundPhotoUrl: map['wound_photo_url'],
       foodPhotoUrl: map['food_photo_url'],
       notes: map['notes'],
+      riskClassification: map['risk_classification'],
       submissionDate: DateTime.parse(map['submission_date']),
       updatedAt: DateTime.parse(map['updated_at']),
     );
@@ -52,17 +55,10 @@ class HealthMetric {
       'wound_photo_url': woundPhotoUrl,
       'food_photo_url': foodPhotoUrl,
       'notes': notes,
+      'risk_classification': riskClassification,
       'submission_date': submissionDate.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };
-  }
-
-  String get riskClassification {
-    if (bpSystolic == null || bpDiastolic == null) return 'UNKNOWN';
-
-    if (bpSystolic! < 130 && bpDiastolic! < 85) return 'LOW';
-    if (bpSystolic! < 140 && bpDiastolic! < 90) return 'MEDIUM';
-    return 'HIGH';
   }
 
   String get glucoseClassification {
