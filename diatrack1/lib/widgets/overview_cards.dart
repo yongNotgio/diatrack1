@@ -22,38 +22,38 @@ class OverviewCards extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       mainAxisSpacing: 12,
       crossAxisSpacing: 12,
-      childAspectRatio: 1.25,
+      childAspectRatio: 0.95,
       children: [
         _OverviewCard(
-          title: 'Blood Glucose',
+          title: 'Blood\nGlucose',
           value: avgGlucose.toStringAsFixed(1),
           unit: 'mg/dL',
-          color: const Color(0xFFE53E3E), // Strong red
-          backgroundColor: const Color(0xFFFFF5F5), // Light red background
+          color: const Color(0xFFAC191F),
+          backgroundColor: const Color(0xFFFFE5E6),
           label: 'AVG',
         ),
         _OverviewCard(
-          title: 'BP Systolic',
+          title: 'BP\nSystolic',
           value: avgSystolic.toStringAsFixed(1),
           unit: 'mmHg',
-          color: const Color(0xFF38A169), // Strong green
-          backgroundColor: const Color(0xFFF0FFF4), // Light green background
+          color: const Color(0xFF199DAC),
+          backgroundColor: const Color(0xFFE5FCFF),
           label: 'AVG',
         ),
         _OverviewCard(
-          title: 'BP Diastolic',
+          title: 'BP\nDiastolic',
           value: avgDiastolic.toStringAsFixed(1),
           unit: 'mmHg',
-          color: const Color(0xFF3182CE), // Strong blue
-          backgroundColor: const Color(0xFFF7FAFC), // Light blue background
+          color: const Color(0xFF19AC4A),
+          backgroundColor: const Color(0xFFE5FFEE),
           label: 'AVG',
         ),
         _OverviewCard(
-          title: 'Risk Classification',
+          title: 'Risk\nClassification',
           value: riskClassification,
           unit: 'Surgical Risk',
-          color: const Color(0xFF805AD5), // Strong purple
-          backgroundColor: const Color(0xFFFAF5FF), // Light purple background
+          color: const Color(0xFF7619AC),
+          backgroundColor: const Color(0xFFF6E5FF),
           label: 'MODE',
         ),
       ],
@@ -81,69 +81,80 @@ class _OverviewCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 4,
+      elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       color: backgroundColor ?? Colors.white,
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withOpacity(0.3), width: 1),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (label != null)
-                Container(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    label!,
-                    style: TextStyle(
-                      fontSize: 10,
+      child: Padding(
+        padding: const EdgeInsets.all(14.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (label != null)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
                       color: color,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      label!,
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontFamily: 'Poppins',
+                        letterSpacing: 0.5,
+                      ),
                     ),
                   ),
+                const SizedBox(height: 4),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 21,
+                    color: color,
+                    fontWeight: FontWeight.w500,
+                    fontFamily: 'Poppins',
+                    height: 1.0,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.visible,
                 ),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: color.withOpacity(0.8),
-                  fontWeight: FontWeight.w600,
+              ],
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 52,
+                    fontWeight: FontWeight.w700,
+                    color: color,
+                    fontFamily: 'Poppins',
+                    height: 0.95,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: color,
-                  height: 1.0,
+                const SizedBox(height: 2),
+                Text(
+                  unit,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: color,
+                    fontWeight: FontWeight.w400,
+                    fontFamily: 'Poppins',
+                  ),
                 ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                unit,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: color.withOpacity(0.7),
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
+              ],
+            ),
+          ],
         ),
       ),
     );

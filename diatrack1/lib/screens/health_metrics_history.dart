@@ -21,7 +21,6 @@ class HealthMetricsHistory extends StatefulWidget {
 class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
   final SupabaseService _supabaseService = SupabaseService();
   late Future<List<HealthMetric>> _metricsFuture;
-  int _currentTabIndex = 0;
 
   @override
   void initState() {
@@ -74,13 +73,19 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
                     const SizedBox(height: 16),
                     Text(
                       'Error: ${snapshot.error}',
-                      style: const TextStyle(fontSize: 16),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontFamily: 'Poppins',
+                      ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: _refreshData,
-                      child: const Text('Retry'),
+                      child: const Text(
+                        'Retry',
+                        style: TextStyle(fontFamily: 'Poppins'),
+                      ),
                     ),
                   ],
                 ),
@@ -102,12 +107,19 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
                     const SizedBox(height: 16),
                     const Text(
                       'No health metrics found.',
-                      style: TextStyle(fontSize: 18, color: Colors.grey),
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.grey,
+                        fontFamily: 'Poppins',
+                      ),
                     ),
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: _refreshData,
-                      child: const Text('Refresh'),
+                      child: const Text(
+                        'Refresh',
+                        style: TextStyle(fontFamily: 'Poppins'),
+                      ),
                     ),
                   ],
                 ),
@@ -146,20 +158,16 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
         children: [
           _buildHeader(),
           Expanded(
-            child:
-                _currentTabIndex == 0
-                    ? _buildOverviewTab(
-                      metrics,
-                      avgGlucose,
-                      avgSystolic,
-                      avgDiastolic,
-                      riskClassification,
-                    )
-                    : _buildTableTab(metrics),
+            child: _buildOverviewTab(
+              metrics,
+              avgGlucose,
+              avgSystolic,
+              avgDiastolic,
+              riskClassification,
+            ),
           ),
         ],
       ),
-      bottomNavigationBar: _buildBottomNavigation(),
     );
   }
 
@@ -196,6 +204,7 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF069ADE),
+                      fontFamily: 'Poppins',
                     ),
                   );
                 },
@@ -225,38 +234,48 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Health Metrics History',
-            style: TextStyle(
-              fontSize: 30,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF069ADE),
+          const Center(
+            child: Text(
+              'Health Metrics\nHistory',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF0D629E),
+                fontFamily: 'Poppins',
+              ),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
 
           // Overview Section
           const Text(
             'Overview',
             style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-              color: Color(0xFF2D3748),
+              fontWeight: FontWeight.w500,
+              fontSize: 25,
+              color: Color(0xFF0D629E),
+              fontFamily: 'Poppins',
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 4),
           OverviewCards(
             avgGlucose: avgGlucose,
             avgSystolic: avgSystolic,
             avgDiastolic: avgDiastolic,
             riskClassification: riskClassification,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 22),
 
           // Visualizations Section
           const Text(
             'Visualizations',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 18,
+              color: Color(0xFF0D629E),
+              fontFamily: 'Poppins',
+            ),
           ),
           const SizedBox(height: 12),
           BloodSugarChart(metrics: metrics),
@@ -267,16 +286,45 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
           // Wound Photos Section
           const Text(
             'Wound Photos',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 18,
+              color: Color(0xFF0D629E),
+              fontFamily: 'Poppins',
+            ),
           ),
           const SizedBox(height: 12),
           WoundPhotosSection(metrics: metrics),
           const SizedBox(height: 24),
 
           // Health Metrics Submissions Section
-          const Text(
-            'Health Metrics Submissions',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Health Metrics Submissions',
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 18,
+                  color: Color(0xFF0D629E),
+                  fontFamily: 'Poppins',
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  _showTablesBottomSheet(context, metrics);
+                },
+                child: const Text(
+                  'View Tables',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF0D629E),
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 12),
           ...metrics
@@ -287,157 +335,94 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
     );
   }
 
-  Widget _buildTableTab(List<HealthMetric> metrics) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Health Metrics History',
-            style: TextStyle(
-              fontSize: 30,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF069ADE),
-            ),
-          ),
-          const SizedBox(height: 24),
+  Widget _buildMetricSubmissionCard(HealthMetric metric) {
+    // Get risk color based on classification
+    Color getRiskColor(String risk) {
+      switch (risk.toUpperCase()) {
+        case 'LOW':
+          return const Color(0xFF19AC4A); // Green
+        case 'HIGH':
+          return const Color(0xFFAC191F); // Red
+        case 'MEDIUM':
+          return const Color(0xFFF59E0B); // Orange/Yellow
+        default:
+          return const Color(0xFF6B7280); // Gray
+      }
+    }
 
-          // Search Bar
-          TextField(
-            decoration: InputDecoration(
-              hintText: 'Search',
-              prefixIcon: const Icon(Icons.search),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Colors.grey.withOpacity(0.3)),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Colors.grey.withOpacity(0.3)),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Color(0xFF069ADE)),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 12,
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Action Buttons
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    // TODO: Implement filter functionality
-                  },
-                  icon: const Icon(Icons.filter_list, size: 16),
-                  label: const Text('Filter'),
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: Colors.grey.withOpacity(0.3)),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    // TODO: Implement export functionality
-                  },
-                  icon: const Icon(Icons.upload, size: 16),
-                  label: const Text('Export'),
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: Colors.grey.withOpacity(0.3)),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-
-          // Tables
-          MetricsTable(
-            metrics: metrics,
-            title: 'Blood Glucose Table',
-            metricType: 'glucose',
-          ),
-          const SizedBox(height: 24),
-          MetricsTable(
-            metrics: metrics,
-            title: 'Blood Pressure Table',
-            metricType: 'pressure',
-          ),
-          const SizedBox(height: 24),
-          MetricsTable(
-            metrics: metrics,
-            title: 'Risk Class Table',
-            metricType: 'risk',
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 4,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildMetricSubmissionCard(HealthMetric metric) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 6),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Header with date and actions
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   DateFormatter.formatDateTime(metric.submissionDate),
                   style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF0D629E),
+                    fontFamily: 'Poppins',
                   ),
                 ),
                 Row(
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.edit, size: 16),
+                      icon: const Icon(Icons.edit, size: 18),
+                      color: const Color(0xFF6B7280),
                       onPressed: () {
                         // TODO: Implement edit functionality
                       },
                     ),
                     IconButton(
-                      icon: const Icon(Icons.delete, size: 16),
+                      icon: const Icon(Icons.delete, size: 18),
+                      color: const Color(0xFF6B7280),
                       onPressed: () async {
                         final confirmed = await showDialog<bool>(
                           context: context,
                           builder:
                               (context) => AlertDialog(
-                                title: const Text('Delete Metric'),
+                                title: const Text(
+                                  'Delete Metric',
+                                  style: TextStyle(fontFamily: 'Poppins'),
+                                ),
                                 content: const Text(
                                   'Are you sure you want to delete this health metric?',
+                                  style: TextStyle(fontFamily: 'Poppins'),
                                 ),
                                 actions: [
                                   TextButton(
                                     onPressed:
                                         () => Navigator.of(context).pop(false),
-                                    child: const Text('Cancel'),
+                                    child: const Text(
+                                      'Cancel',
+                                      style: TextStyle(fontFamily: 'Poppins'),
+                                    ),
                                   ),
                                   TextButton(
                                     onPressed:
                                         () => Navigator.of(context).pop(true),
-                                    child: const Text('Delete'),
+                                    child: const Text(
+                                      'Delete',
+                                      style: TextStyle(fontFamily: 'Poppins'),
+                                    ),
                                   ),
                                 ],
                               ),
@@ -452,7 +437,10 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
                             if (mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text('Metric deleted successfully'),
+                                  content: Text(
+                                    'Metric deleted successfully',
+                                    style: TextStyle(fontFamily: 'Poppins'),
+                                  ),
                                 ),
                               );
                             }
@@ -460,7 +448,12 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
                             if (mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text('Failed to delete metric: $e'),
+                                  content: Text(
+                                    'Failed to delete metric: $e',
+                                    style: const TextStyle(
+                                      fontFamily: 'Poppins',
+                                    ),
+                                  ),
                                 ),
                               );
                             }
@@ -472,44 +465,137 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            Row(
+            const SizedBox(height: 16),
+
+            // Left side - Blood Glucose
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Blood Glucose: ${metric.bloodGlucose?.toStringAsFixed(0) ?? '-'} mg/dL',
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                      Text(
-                        'Classification: ${metric.glucoseClassification}',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.blue,
-                        ),
-                      ),
-                    ],
+                const Text(
+                  'Blood Glucose',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF0D629E),
+                    fontFamily: 'Poppins',
                   ),
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Blood Pressure: ${metric.bpSystolic ?? '-'} / ${metric.bpDiastolic ?? '-'} mmHg',
-                        style: const TextStyle(fontSize: 12),
+                const SizedBox(height: 4),
+                Text(
+                  '${metric.bloodGlucose?.toStringAsFixed(0) ?? '-'}',
+                  style: const TextStyle(
+                    fontSize: 48,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF0D629E),
+                    fontFamily: 'Poppins',
+                    height: 1.0,
+                  ),
+                ),
+
+                // Blood Pressure section
+                const SizedBox(height: 16),
+                const Text(
+                  'Blood Pressure',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF0D629E),
+                    fontFamily: 'Poppins',
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Text(
+                      '${metric.bpSystolic ?? '-'}',
+                      style: const TextStyle(
+                        fontSize: 48,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF0D629E),
+                        fontFamily: 'Poppins',
+                        height: 1.0,
                       ),
-                      Text(
-                        'Risk: ${metric.riskClassification}',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.orange,
+                    ),
+                    const SizedBox(width: 8),
+                    Column(
+                      children: [
+                        const Text(
+                          'SYS',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF0D629E),
+                            fontFamily: 'Poppins',
+                          ),
                         ),
+                        Text(
+                          'mmHg',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w400,
+                            color: Colors.grey[600],
+                            fontFamily: 'Poppins',
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(width: 24),
+                    Text(
+                      '${metric.bpDiastolic ?? '-'}',
+                      style: const TextStyle(
+                        fontSize: 48,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF0D629E),
+                        fontFamily: 'Poppins',
+                        height: 1.0,
                       ),
-                    ],
+                    ),
+                    const SizedBox(width: 8),
+                    Column(
+                      children: [
+                        const Text(
+                          'DIA',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF0D629E),
+                            fontFamily: 'Poppins',
+                          ),
+                        ),
+                        Text(
+                          'mmHg',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w400,
+                            color: Colors.grey[600],
+                            fontFamily: 'Poppins',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+
+                // Classification section
+                const SizedBox(height: 16),
+                const Text(
+                  'Classification',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF0D629E),
+                    fontFamily: 'Poppins',
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  metric.riskClassification.toUpperCase(),
+                  style: TextStyle(
+                    fontSize: 48,
+                    fontWeight: FontWeight.w700,
+                    color: getRiskColor(metric.riskClassification),
+                    fontFamily: 'Poppins',
+                    height: 1.0,
                   ),
                 ),
               ],
@@ -520,21 +606,81 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
     );
   }
 
-  Widget _buildBottomNavigation() {
-    return BottomNavigationBar(
-      currentIndex: _currentTabIndex,
-      onTap: (index) {
-        setState(() {
-          _currentTabIndex = index;
-        });
-      },
-      type: BottomNavigationBarType.fixed,
-      selectedItemColor: const Color(0xFF069ADE),
-      unselectedItemColor: Colors.grey,
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Overview'),
-        BottomNavigationBarItem(icon: Icon(Icons.table_chart), label: 'Tables'),
-      ],
+  void _showTablesBottomSheet(
+    BuildContext context,
+    List<HealthMetric> metrics,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder:
+          (context) => DraggableScrollableSheet(
+            initialChildSize: 0.9,
+            maxChildSize: 0.95,
+            minChildSize: 0.5,
+            builder:
+                (context, scrollController) => Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(20),
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Health Metrics Tables',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF0D629E),
+                                fontFamily: 'Poppins',
+                              ),
+                            ),
+                            IconButton(
+                              onPressed: () => Navigator.pop(context),
+                              icon: const Icon(Icons.close),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          controller: scrollController,
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            children: [
+                              MetricsTable(
+                                metrics: metrics,
+                                title: 'Blood Glucose Table',
+                                metricType: 'glucose',
+                              ),
+                              const SizedBox(height: 24),
+                              MetricsTable(
+                                metrics: metrics,
+                                title: 'Blood Pressure Table',
+                                metricType: 'pressure',
+                              ),
+                              const SizedBox(height: 24),
+                              MetricsTable(
+                                metrics: metrics,
+                                title: 'Risk Class Table',
+                                metricType: 'risk',
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+          ),
     );
   }
 

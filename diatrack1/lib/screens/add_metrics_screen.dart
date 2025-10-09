@@ -207,7 +207,7 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
                 style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 12,
-                  color: Colors.grey,
+                  color: Color(0xFF0D629E),
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -239,7 +239,7 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
                       style: TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 12,
-                        color: Colors.black54,
+                        color: Color(0xFF0D629E),
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -415,7 +415,7 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
                       style: TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 12,
-                        color: Colors.black54,
+                        color: Color(0xFF0D629E),
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -476,7 +476,7 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
                         style: TextStyle(
                           fontFamily: 'Poppins',
                           fontSize: 12,
-                          color: Colors.black54,
+                          color: Color(0xFF0D629E),
                         ),
                         textAlign: TextAlign.center,
                       ),
