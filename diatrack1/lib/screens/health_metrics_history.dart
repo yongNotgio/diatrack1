@@ -7,7 +7,6 @@ import '../widgets/blood_sugar_chart.dart';
 import '../widgets/blood_pressure_chart.dart';
 import '../widgets/wound_photos_section.dart';
 
-
 class HealthMetricsHistory extends StatefulWidget {
   final String patientId;
 
@@ -912,7 +911,11 @@ class _TablesScreenState extends State<_TablesScreen> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.refresh, size: 16, color: Color(0xFF0D629E)),
+                        const Icon(
+                          Icons.refresh,
+                          size: 16,
+                          color: Color(0xFF0D629E),
+                        ),
                         const SizedBox(width: 4),
                         const Text(
                           'Refresh',
@@ -1127,7 +1130,11 @@ class _TablesScreenState extends State<_TablesScreen> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.refresh, size: 16, color: Color(0xFF0D629E)),
+                        const Icon(
+                          Icons.refresh,
+                          size: 16,
+                          color: Color(0xFF0D629E),
+                        ),
                         const SizedBox(width: 4),
                         const Text(
                           'Refresh',
@@ -1160,13 +1167,17 @@ class _TablesScreenState extends State<_TablesScreen> {
                 itemBuilder: (context, index) {
                   final metric = widget.metrics[index];
                   return Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       border: Border(
                         bottom: BorderSide(
-                          color: index == widget.metrics.length - 1
-                              ? Colors.transparent
-                              : const Color(0xFFE5E5E5),
+                          color:
+                              index == widget.metrics.length - 1
+                                  ? Colors.transparent
+                                  : const Color(0xFFE5E5E5),
                         ),
                       ),
                     ),
@@ -1320,30 +1331,21 @@ class _TablesScreenState extends State<_TablesScreen> {
               flex: 1,
               child: Text(
                 '#${1000 + index}',
-                style: const TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 12,
-                ),
+                style: const TextStyle(fontFamily: 'Poppins', fontSize: 12),
               ),
             ),
             Expanded(
               flex: 2,
               child: Text(
                 DateFormatter.formatDateTime(metric.submissionDate),
-                style: const TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 12,
-                ),
+                style: const TextStyle(fontFamily: 'Poppins', fontSize: 12),
               ),
             ),
             Expanded(
               flex: 1,
               child: Text(
                 '${metric.bloodGlucose?.toStringAsFixed(0) ?? '--'} mg/dL',
-                style: const TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 12,
-                ),
+                style: const TextStyle(fontFamily: 'Poppins', fontSize: 12),
               ),
             ),
           ],
@@ -1355,30 +1357,21 @@ class _TablesScreenState extends State<_TablesScreen> {
               flex: 1,
               child: Text(
                 '#${1000 + index}',
-                style: const TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 12,
-                ),
+                style: const TextStyle(fontFamily: 'Poppins', fontSize: 12),
               ),
             ),
             Expanded(
               flex: 2,
               child: Text(
                 DateFormatter.formatDateTime(metric.submissionDate),
-                style: const TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 12,
-                ),
+                style: const TextStyle(fontFamily: 'Poppins', fontSize: 12),
               ),
             ),
             Expanded(
               flex: 1,
               child: Text(
                 '${metric.bpSystolic ?? '--'}/${metric.bpDiastolic ?? '--'}',
-                style: const TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 12,
-                ),
+                style: const TextStyle(fontFamily: 'Poppins', fontSize: 12),
               ),
             ),
           ],
@@ -1390,20 +1383,14 @@ class _TablesScreenState extends State<_TablesScreen> {
               flex: 1,
               child: Text(
                 '#${1000 + index}',
-                style: const TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 12,
-                ),
+                style: const TextStyle(fontFamily: 'Poppins', fontSize: 12),
               ),
             ),
             Expanded(
               flex: 2,
               child: Text(
                 DateFormatter.formatDateTime(metric.submissionDate),
-                style: const TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 12,
-                ),
+                style: const TextStyle(fontFamily: 'Poppins', fontSize: 12),
               ),
             ),
             Expanded(
