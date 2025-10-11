@@ -17,6 +17,16 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  /// Classifies blood pressure values into categories
+  String classifyBloodPressure(int? systolic, int? diastolic) {
+    if (systolic == null || diastolic == null) return 'UNKNOWN';
+    if (systolic > 180 || diastolic > 120) return 'CRISIS';
+    if (systolic >= 140 || diastolic >= 90) return 'HIGH';
+    if (systolic >= 130 || diastolic >= 80) return 'ELEVATED';
+    if (systolic < 120 && diastolic < 80) return 'NORMAL';
+    return 'ELEVATED';
+  }
+
   final SupabaseService _supabaseService = SupabaseService();
   late Future<List<Map<String, dynamic>>> _metricsFuture;
   late Future<Map<String, dynamic>?> _appointmentFuture;
@@ -638,7 +648,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                   value2: '${metric['bp_diastolic'] ?? '--'}',
                                   unit: 'mmHg',
                                   taken: date,
-                                  status: 'LOW',
+                                  status: classifyBloodPressure(
+                                    metric['bp_systolic'] as int?,
+                                    metric['bp_diastolic'] as int?,
+                                  ),
                                 ),
                               ),
                               const SizedBox(width: 12),
@@ -902,6 +915,22 @@ class _HomeScreenState extends State<HomeScreen> {
     String status,
     String taken,
   ) {
+    // Determine BP badge color based on status
+    Color badgeColor;
+    switch (status.toUpperCase()) {
+      case 'NORMAL':
+        badgeColor = const Color(0xFF4CAF50); // green
+        break;
+      case 'ELEVATED':
+        badgeColor = const Color(0xFFFFC107); // amber/yellow
+        break;
+      case 'HIGH':
+      case 'CRISIS':
+        badgeColor = const Color(0xFFF44336); // red
+        break;
+      default:
+        badgeColor = const Color(0xFF6B7280); // gray
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -988,7 +1017,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
-                color: const Color(0xFF4CAF50),
+                color: badgeColor,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(

@@ -18,11 +18,15 @@ class DateFormatter {
   }
 
   static String formatDateTime(DateTime date) {
+    // Format as mm/dd/yyyy | h:mm AM/PM
+    final month = date.month.toString().padLeft(2, '0');
+    final day = date.day.toString().padLeft(2, '0');
+    final year = date.year;
     final minute = date.minute.toString().padLeft(2, '0');
     final ampm = date.hour >= 12 ? 'PM' : 'AM';
     final hour12 =
         date.hour > 12 ? date.hour - 12 : (date.hour == 0 ? 12 : date.hour);
-    return '${formatDate(date)} | $hour12:$minute $ampm';
+    return '$month/$day/$year | $hour12:$minute $ampm';
   }
 
   static String formatDateWithDay(DateTime date) {

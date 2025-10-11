@@ -5,6 +5,15 @@ import 'package:image_picker/image_picker.dart';
 final supabase = Supabase.instance.client;
 
 class SupabaseService {
+  /// Classifies blood pressure based on systolic and diastolic values.
+  String classifyBloodPressure(int systolic, int diastolic) {
+    if (systolic > 180 || diastolic > 120) return 'CRISIS';
+    if (systolic >= 140 || diastolic >= 90) return 'HIGH';
+    if (systolic >= 130 || diastolic >= 80) return 'ELEVATED';
+    if (systolic < 120 && diastolic < 80) return 'NORMAL';
+    return 'ELEVATED';
+  }
+
   final ImagePicker _picker = ImagePicker();
 
   Future<Map<String, dynamic>?> signUpPatient({
@@ -109,6 +118,10 @@ class SupabaseService {
         'blood_glucose': bloodGlucose,
         'bp_systolic': bpSystolic,
         'bp_diastolic': bpDiastolic,
+        'bp_classification':
+            bpSystolic != null && bpDiastolic != null
+                ? classifyBloodPressure(bpSystolic, bpDiastolic)
+                : null,
         'pulse_rate': pulseRate,
         'wound_photo_url': woundPhotoUrl,
         'food_photo_url': foodPhotoUrl,
@@ -168,6 +181,10 @@ class SupabaseService {
         'blood_glucose': bloodGlucose,
         'bp_systolic': bpSystolic,
         'bp_diastolic': bpDiastolic,
+        'bp_classification':
+            bpSystolic != null && bpDiastolic != null
+                ? classifyBloodPressure(bpSystolic, bpDiastolic)
+                : null,
         'pulse_rate': pulseRate,
         'wound_photo_url': woundPhotoUrl,
         'food_photo_url': foodPhotoUrl,

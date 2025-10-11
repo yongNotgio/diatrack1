@@ -9,6 +9,7 @@ class HealthMetric {
   final String? foodPhotoUrl;
   final String? notes;
   final String? riskClassification;
+  final String? bpClassification;
   final DateTime submissionDate;
   final DateTime updatedAt;
 
@@ -25,6 +26,7 @@ class HealthMetric {
     this.riskClassification,
     required this.submissionDate,
     required this.updatedAt,
+    this.bpClassification,
   });
 
   factory HealthMetric.fromMap(Map<String, dynamic> map) {
@@ -41,6 +43,7 @@ class HealthMetric {
       riskClassification: map['risk_classification'],
       submissionDate: DateTime.parse(map['submission_date']),
       updatedAt: DateTime.parse(map['updated_at']),
+      bpClassification: map['bp_classification'],
     );
   }
 

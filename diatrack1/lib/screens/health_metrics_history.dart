@@ -9,7 +9,6 @@ import '../widgets/wound_photos_section.dart';
 
 class HealthMetricsHistory extends StatefulWidget {
   final String patientId;
-
   const HealthMetricsHistory({Key? key, required this.patientId})
     : super(key: key);
 
@@ -46,131 +45,73 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: FutureBuilder<List<HealthMetric>>(
-        future: _metricsFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Scaffold(
-              body: Center(
-                child: CircularProgressIndicator(color: Color(0xFF069ADE)),
-              ),
-            );
-          }
-
-          if (snapshot.hasError) {
-            return Scaffold(
-              body: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.error_outline,
-                      size: 64,
-                      color: Colors.red,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Error: ${snapshot.error}',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontFamily: 'Poppins',
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: _refreshData,
-                      child: const Text(
-                        'Retry',
-                        style: TextStyle(fontFamily: 'Poppins'),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }
-
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Scaffold(
-              body: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.health_and_safety_outlined,
-                      size: 64,
-                      color: Colors.grey,
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'No health metrics found.',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.grey,
-                        fontFamily: 'Poppins',
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: _refreshData,
-                      child: const Text(
-                        'Refresh',
-                        style: TextStyle(fontFamily: 'Poppins'),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }
-
-          final metrics = snapshot.data!;
-          return _buildMainContent(metrics);
-        },
-      ),
-    );
-  }
-
-  Widget _buildMainContent(List<HealthMetric> metrics) {
-    // Calculate averages
-    final avgGlucose = _calculateAverage(
-      metrics.map((m) => m.bloodGlucose).where((v) => v != null).toList(),
-    );
-    final avgSystolic = _calculateAverage(
-      metrics
-          .map((m) => m.bpSystolic?.toDouble())
-          .where((v) => v != null)
-          .toList(),
-    );
-    final avgDiastolic = _calculateAverage(
-      metrics
-          .map((m) => m.bpDiastolic?.toDouble())
-          .where((v) => v != null)
-          .toList(),
-    );
-    final riskClassification = _getMostCommonRiskClassification(metrics);
-
-    return Scaffold(
-      body: Column(
-        children: [
-          _buildHeader(),
-          Expanded(
-            child: _buildOverviewTab(
-              metrics,
-              avgGlucose,
-              avgSystolic,
-              avgDiastolic,
-              riskClassification,
+    return FutureBuilder<List<HealthMetric>>(
+      future: _metricsFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(color: Color(0xFF069ADE)),
             ),
+          );
+        }
+        if (snapshot.hasError) {
+          return Scaffold(
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Error: {snapshot.error}',
+                    style: TextStyle(fontFamily: 'Poppins'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+        final metrics = snapshot.data!;
+        // Calculate averages
+        final avgGlucose = _calculateAverage(
+          metrics.map((m) => m.bloodGlucose).where((v) => v != null).toList(),
+        );
+        final avgSystolic = _calculateAverage(
+          metrics
+              .map((m) => m.bpSystolic?.toDouble())
+              .where((v) => v != null)
+              .toList(),
+        );
+        final avgDiastolic = _calculateAverage(
+          metrics
+              .map((m) => m.bpDiastolic?.toDouble())
+              .where((v) => v != null)
+              .toList(),
+        );
+        final riskClassification = _getMostCommonRiskClassification(metrics);
+        return Scaffold(
+          body: Column(
+            children: [
+              _buildHeader(context),
+              Expanded(
+                child: _buildOverviewTab(
+                  context,
+                  metrics,
+                  avgGlucose,
+                  avgSystolic,
+                  avgDiastolic,
+                  riskClassification,
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
     return Container(
       padding: const EdgeInsets.only(top: 40, left: 16, right: 16, bottom: 8),
       decoration: BoxDecoration(
@@ -222,6 +163,7 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
   }
 
   Widget _buildOverviewTab(
+    BuildContext context,
     List<HealthMetric> metrics,
     double avgGlucose,
     double avgSystolic,
@@ -246,8 +188,6 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
             ),
           ),
           const SizedBox(height: 16),
-
-          // Overview Section
           const Text(
             'Overview',
             style: TextStyle(
@@ -265,8 +205,6 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
             riskClassification: riskClassification,
           ),
           const SizedBox(height: 22),
-
-          // Visualizations Section
           const Text(
             'Visualizations',
             style: TextStyle(
@@ -281,8 +219,6 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
           const SizedBox(height: 12),
           BloodPressureChart(metrics: metrics),
           const SizedBox(height: 24),
-
-          // Wound Photos Section
           const Text(
             'Wound Photos',
             style: TextStyle(
@@ -295,8 +231,6 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
           const SizedBox(height: 12),
           WoundPhotosSection(metrics: metrics),
           const SizedBox(height: 24),
-
-          // Health Metrics Submissions Section
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -588,7 +522,7 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
                         ],
                       ),
                       const SizedBox(height: 4),
-                      // Diastolic
+                      // Diastolic and BP Classification
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
@@ -674,6 +608,17 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
     if (counts.isEmpty) return 'UNKNOWN';
 
     return counts.entries.reduce((a, b) => a.value > b.value ? a : b).key;
+  }
+
+  /// Classifies blood pressure based on systolic and diastolic values.
+  String classifyBloodPressure(int? systolic, int? diastolic) {
+    if (systolic == null || diastolic == null) return '';
+    if (systolic > 180 || diastolic > 120) return 'CRISIS';
+    if (systolic >= 140 || diastolic >= 90) return 'HIGH';
+    if (systolic >= 130 || diastolic >= 80) return 'ELEVATED';
+    if (systolic >= 120 && diastolic < 80) return 'ELEVATED';
+    if (systolic < 120 && diastolic < 80) return 'NORMAL';
+    return '';
   }
 }
 
@@ -1274,6 +1219,18 @@ class _TablesScreenState extends State<_TablesScreen> {
                 ),
               ),
             ),
+            Expanded(
+              flex: 1,
+              child: Text(
+                'BP Class',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontFamily: 'Poppins',
+                  fontSize: 12,
+                  color: Colors.grey[700],
+                ),
+              ),
+            ),
           ],
         );
       case 'risk':
@@ -1372,6 +1329,25 @@ class _TablesScreenState extends State<_TablesScreen> {
               child: Text(
                 '${metric.bpSystolic ?? '--'}/${metric.bpDiastolic ?? '--'}',
                 style: const TextStyle(fontFamily: 'Poppins', fontSize: 12),
+              ),
+            ),
+            Expanded(
+              flex: 1,
+              child: Text(
+                (metric.bpClassification ?? '').toUpperCase(),
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color:
+                      {
+                        'NORMAL': Color(0xFF19AC4A),
+                        'ELEVATED': Color(0xFF199DAC),
+                        'HIGH': Color(0xFFAC191F),
+                        'CRISIS': Colors.red,
+                      }[metric.bpClassification?.toUpperCase() ?? ''] ??
+                      Colors.grey,
+                ),
               ),
             ),
           ],
