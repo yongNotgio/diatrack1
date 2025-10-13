@@ -128,263 +128,321 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Scaffold(
         backgroundColor: const Color(0xFFF8FAFF),
         appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu, color: Color(0xFF1DA1F2)),
-            onPressed: () {
-              Scaffold.of(context).openDrawer();
-            },
+          backgroundColor: Colors.white,
+          elevation: 0,
+          leading: Builder(
+            builder:
+                (context) => IconButton(
+                  icon: const Icon(Icons.menu, color: Color(0xFF1DA1F2)),
+                  onPressed: () {
+                    Scaffold.of(context).openDrawer();
+                  },
+                ),
           ),
-        ),
-        title: Padding(
-          padding: const EdgeInsets.only(right: 8.0),
-          child: Image.asset(
-            'assets/images/diatrack_logo.png',
-            height: 32,
-            fit: BoxFit.contain,
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh, color: Color(0xFF1DA1F2)),
-            tooltip: 'Refresh',
-            onPressed: () {
-              _loadMetrics();
-              _loadAppointment();
-            },
-          ),
-          IconButton(
-            icon: const Icon(
-              Icons.notifications_none,
-              color: Color(0xFF1DA1F2),
+          title: Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: Image.asset(
+              'assets/images/diatrack_logo.png',
+              height: 32,
+              fit: BoxFit.contain,
             ),
-            onPressed: () {},
           ),
-        ],
-      ),
-      drawer: _buildDrawer(context, patientName),
-      body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: _metricsFuture,
-        builder: (context, snapshot) {
-          final metric =
-              (snapshot.hasData && snapshot.data!.isNotEmpty)
-                  ? snapshot.data!.first
-                  : null;
-          final date =
-              metric != null
-                  ? _formatDate(metric['submission_date'] as String?)
-                  : DateFormat('MMMM d, yyyy').format(DateTime.now());
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.refresh, color: Color(0xFF1DA1F2)),
+              tooltip: 'Refresh',
+              onPressed: () {
+                _loadMetrics();
+                _loadAppointment();
+              },
+            ),
+            IconButton(
+              icon: const Icon(
+                Icons.notifications_none,
+                color: Color(0xFF1DA1F2),
+              ),
+              onPressed: () {},
+            ),
+          ],
+        ),
+        drawer: _buildDrawer(context, patientName),
+        body: FutureBuilder<List<Map<String, dynamic>>>(
+          future: _metricsFuture,
+          builder: (context, snapshot) {
+            final metric =
+                (snapshot.hasData && snapshot.data!.isNotEmpty)
+                    ? snapshot.data!.first
+                    : null;
+            final date =
+                metric != null
+                    ? _formatDate(metric['submission_date'] as String?)
+                    : DateFormat('MMMM d, yyyy').format(DateTime.now());
 
-          return RefreshIndicator(
-            onRefresh: () async {
-              _loadMetrics();
-              _loadAppointment();
-              await Future.delayed(const Duration(milliseconds: 500));
-            },
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Welcome & Profile
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Welcome',
-                                style: TextStyle(
-                                  fontFamily: 'Poppins',
-                                  color: Colors.grey,
-                                  fontSize: 18,
-                                ),
-                              ),
-                              Text(
-                                patientName,
-                                style: const TextStyle(
-                                  fontFamily: 'Poppins',
-                                  color: Color(0xFF1DA1F2),
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 28,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFFFE2E2),
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                    child: Text(
-                                      diagnosis.toUpperCase(),
-                                      style: const TextStyle(
-                                        fontFamily: 'Poppins',
-                                        color: Color(0xFFD32F2F),
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 12,
-                                      ),
-                                    ),
+            return RefreshIndicator(
+              onRefresh: () async {
+                _loadMetrics();
+                _loadAppointment();
+                await Future.delayed(const Duration(milliseconds: 500));
+              },
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Welcome & Profile
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Welcome',
+                                  style: TextStyle(
+                                    fontFamily: 'Poppins',
+                                    color: Colors.grey,
+                                    fontSize: 18,
                                   ),
-                                  const SizedBox(width: 8),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFFFE2E2),
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                    child: Text(
-                                      surgeryStatus.toUpperCase(),
-                                      style: const TextStyle(
-                                        color: Color(0xFFD32F2F),
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 12,
-                                      ),
-                                    ),
+                                ),
+                                Text(
+                                  patientName,
+                                  style: const TextStyle(
+                                    fontFamily: 'Poppins',
+                                    color: Color(0xFF1DA1F2),
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 28,
                                   ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                        CircleAvatar(
-                          radius: 28,
-                          backgroundColor: const Color(0xFFE6F3FF),
-                          backgroundImage: widget.patientData['patient_picture'] != null &&
-                                  (widget.patientData['patient_picture'] as String).isNotEmpty
-                              ? NetworkImage(widget.patientData['patient_picture'] as String)
-                              : null,
-                          child: widget.patientData['patient_picture'] == null ||
-                                  (widget.patientData['patient_picture'] as String).isEmpty
-                              ? Image.asset(
-                                  'assets/images/avatar.png',
-                                  fit: BoxFit.cover,
-                                )
-                              : null,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Attending Physician Card
-                  FutureBuilder<Map<String, dynamic>?>(
-                    future: _appointmentFuture,
-                    builder: (context, snapshot) {
-                      String nextCheckup = 'No upcoming appointment';
-                      String nextCheckupTime = '';
-                      String doctorLastName = '';
-                      String doctorFirstName = '';
-
-                      // Parse doctor name to split into first and last name
-                      String fullDoctorName =
-                          widget.patientData['doctor_name'] ??
-                          'Doctor Not Found';
-                      List<String> nameParts = fullDoctorName.split(' ');
-                      if (nameParts.length >= 2) {
-                        doctorFirstName = nameParts[0];
-                        doctorLastName = nameParts.sublist(1).join(' ');
-                      } else {
-                        doctorLastName = fullDoctorName;
-                      }
-
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        nextCheckup = 'Loading...';
-                      } else if (snapshot.hasData && snapshot.data != null) {
-                        final appt = snapshot.data!;
-                        if (appt['appointment_datetime'] != null) {
-                          final dt = DateTime.parse(
-                            appt['appointment_datetime'],
-                          );
-                          nextCheckup =
-                              DateFormat(
-                                'MMM d, yyyy',
-                              ).format(dt).toUpperCase();
-                          nextCheckupTime =
-                              DateFormat('h a').format(dt).toUpperCase();
-                        }
-                      }
-
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFFB300),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          padding: const EdgeInsets.all(12),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Image.asset(
-                                'assets/images/doctor.png',
-                                height: 180,
-                                width: 120,
-                                fit: BoxFit.cover,
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                ),
+                                const SizedBox(height: 8),
+                                Row(
                                   children: [
-                                    const Text(
-                                      'Attending Physician',
-                                      style: TextStyle(
-                                        fontFamily: 'Poppins',
-                                        color: Colors.white,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w500,
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFFFE2E2),
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      child: Text(
+                                        diagnosis.toUpperCase(),
+                                        style: const TextStyle(
+                                          fontFamily: 'Poppins',
+                                          color: Color(0xFFD32F2F),
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12,
+                                        ),
                                       ),
                                     ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      doctorLastName.toUpperCase(),
-                                      style: const TextStyle(
-                                        fontFamily: 'Poppins',
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 32,
-                                        height: 1.0,
+                                    const SizedBox(width: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 4,
                                       ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    Text(
-                                      '$doctorFirstName ${doctorFirstName.isNotEmpty ? "M.D." : ""}',
-                                      style: const TextStyle(
-                                        fontFamily: 'Poppins',
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 20,
-                                        height: 1.2,
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFFFE2E2),
+                                        borderRadius: BorderRadius.circular(16),
                                       ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
+                                      child: Text(
+                                        surgeryStatus.toUpperCase(),
+                                        style: const TextStyle(
+                                          color: Color(0xFFD32F2F),
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12,
+                                        ),
+                                      ),
                                     ),
-                                    const SizedBox(height: 12),
-                                    Row(
-                                      children: [
-                                        Flexible(
-                                          child: Column(
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          CircleAvatar(
+                            radius: 28,
+                            backgroundColor: const Color(0xFFE6F3FF),
+                            backgroundImage:
+                                widget.patientData['patient_picture'] != null &&
+                                        (widget.patientData['patient_picture']
+                                                as String)
+                                            .isNotEmpty
+                                    ? NetworkImage(
+                                      widget.patientData['patient_picture']
+                                          as String,
+                                    )
+                                    : null,
+                            child:
+                                widget.patientData['patient_picture'] == null ||
+                                        (widget.patientData['patient_picture']
+                                                as String)
+                                            .isEmpty
+                                    ? Image.asset(
+                                      'assets/images/avatar.png',
+                                      fit: BoxFit.cover,
+                                    )
+                                    : null,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Attending Physician Card
+                    FutureBuilder<Map<String, dynamic>?>(
+                      future: _appointmentFuture,
+                      builder: (context, snapshot) {
+                        String nextCheckup = 'No upcoming appointment';
+                        String nextCheckupTime = '';
+                        String doctorLastName = '';
+                        String doctorFirstName = '';
+
+                        // Parse doctor name to split into first and last name
+                        String fullDoctorName =
+                            widget.patientData['doctor_name'] ??
+                            'Doctor Not Found';
+                        List<String> nameParts = fullDoctorName.split(' ');
+                        if (nameParts.length >= 2) {
+                          doctorFirstName = nameParts[0];
+                          doctorLastName = nameParts.sublist(1).join(' ');
+                        } else {
+                          doctorLastName = fullDoctorName;
+                        }
+
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          nextCheckup = 'Loading...';
+                        } else if (snapshot.hasData && snapshot.data != null) {
+                          final appt = snapshot.data!;
+                          if (appt['appointment_datetime'] != null) {
+                            final dt = DateTime.parse(
+                              appt['appointment_datetime'],
+                            );
+                            nextCheckup =
+                                DateFormat(
+                                  'MMM d, yyyy',
+                                ).format(dt).toUpperCase();
+                            nextCheckupTime =
+                                DateFormat('h a').format(dt).toUpperCase();
+                          }
+                        }
+
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFB300),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            padding: const EdgeInsets.all(12),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Image.asset(
+                                  'assets/images/doctor.png',
+                                  height: 180,
+                                  width: 120,
+                                  fit: BoxFit.cover,
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Attending Physician',
+                                        style: TextStyle(
+                                          fontFamily: 'Poppins',
+                                          color: Colors.white,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        doctorLastName.toUpperCase(),
+                                        style: const TextStyle(
+                                          fontFamily: 'Poppins',
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 32,
+                                          height: 1.0,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      Text(
+                                        '$doctorFirstName ${doctorFirstName.isNotEmpty ? "M.D." : ""}',
+                                        style: const TextStyle(
+                                          fontFamily: 'Poppins',
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 20,
+                                          height: 1.2,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(height: 12),
+                                      Row(
+                                        children: [
+                                          Flexible(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                const Text(
+                                                  'Next Checkup',
+                                                  style: TextStyle(
+                                                    fontFamily: 'Poppins',
+                                                    color: Colors.white,
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 12,
+                                                        vertical: 8,
+                                                      ),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white
+                                                        .withOpacity(0.95),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          12,
+                                                        ),
+                                                  ),
+                                                  child: Text(
+                                                    nextCheckup,
+                                                    style: const TextStyle(
+                                                      fontFamily: 'Poppins',
+                                                      color: Color(0xFFFFB300),
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontSize: 13,
+                                                    ),
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Column(
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
                                             children: [
                                               const Text(
-                                                'Next Checkup',
+                                                'Time',
                                                 style: TextStyle(
                                                   fontFamily: 'Poppins',
                                                   color: Colors.white,
@@ -396,7 +454,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                               Container(
                                                 padding:
                                                     const EdgeInsets.symmetric(
-                                                      horizontal: 12,
+                                                      horizontal: 16,
                                                       vertical: 8,
                                                     ),
                                                 decoration: BoxDecoration(
@@ -406,311 +464,272 @@ class _HomeScreenState extends State<HomeScreen> {
                                                       BorderRadius.circular(12),
                                                 ),
                                                 child: Text(
-                                                  nextCheckup,
+                                                  nextCheckupTime.isNotEmpty
+                                                      ? nextCheckupTime
+                                                      : '-',
                                                   style: const TextStyle(
                                                     fontFamily: 'Poppins',
                                                     color: Color(0xFFFFB300),
                                                     fontWeight: FontWeight.bold,
                                                     fontSize: 13,
                                                   ),
-                                                  maxLines: 1,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
                                                 ),
                                               ),
                                             ],
                                           ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Add a record card
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: GestureDetector(
+                        onTap: () async {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (context) => AddMetricsScreen(
+                                    patientId: _patientId,
+                                    phase: widget.patientData['phase'],
+                                  ),
+                            ),
+                          );
+                          if (result == true) {
+                            _loadMetrics();
+                          }
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF4FC3F7), Color(0xFF1DA1F2)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          padding: const EdgeInsets.all(20),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Text(
+                                          'Add a record?',
+                                          style: TextStyle(
+                                            fontFamily: 'Poppins',
+                                            color: Colors.white,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500,
+                                          ),
                                         ),
-                                        const SizedBox(width: 12),
-                                        Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            const Text(
-                                              'Time',
-                                              style: TextStyle(
-                                                fontFamily: 'Poppins',
-                                                color: Colors.white,
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 4),
-                                            Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 16,
-                                                    vertical: 8,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                color: Colors.white.withOpacity(
-                                                  0.95,
-                                                ),
-                                                borderRadius:
-                                                    BorderRadius.circular(12),
-                                              ),
-                                              child: Text(
-                                                nextCheckupTime.isNotEmpty
-                                                    ? nextCheckupTime
-                                                    : '-',
-                                                style: const TextStyle(
-                                                  fontFamily: 'Poppins',
-                                                  color: Color(0xFFFFB300),
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 13,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
+                                        const SizedBox(width: 3),
+                                        Image.asset(
+                                          'assets/images/card2.png',
+                                          height: 14,
+                                          fit: BoxFit.contain,
                                         ),
                                       ],
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      DateFormat(
+                                        'MMMM d',
+                                      ).format(DateTime.now()),
+                                      style: const TextStyle(
+                                        fontFamily: 'Poppins',
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 40,
+                                        height: 1.0,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '${DateFormat('yyyy').format(DateTime.now())} | ${DateFormat('EEEE').format(DateTime.now())} | ${DateFormat('h:mm a').format(DateTime.now())}',
+                                      style: const TextStyle(
+                                        fontFamily: 'Poppins',
+                                        color: Colors.white,
+                                        fontSize: 14,
+                                      ),
                                     ),
                                   ],
                                 ),
                               ),
+                              const SizedBox(width: 12),
+                              Image.asset(
+                                'assets/images/add.png',
+                                height: 60,
+                                width: 60,
+                                fit: BoxFit.contain,
+                              ),
                             ],
                           ),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Add a record card
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: GestureDetector(
-                      onTap: () async {
-                        final result = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder:
-                                (context) => AddMetricsScreen(
-                                  patientId: _patientId,
-                                  phase: widget.patientData['phase'],
-                                ),
-                          ),
-                        );
-                        if (result == true) {
-                          _loadMetrics();
-                        }
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF4FC3F7), Color(0xFF1DA1F2)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        padding: const EdgeInsets.all(20),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Text(
-                                        'Add a record?',
-                                        style: TextStyle(
-                                          fontFamily: 'Poppins',
-                                          color: Colors.white,
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 3),
-                                      Image.asset(
-                                        'assets/images/card2.png',
-                                        height: 14,
-                                        fit: BoxFit.contain,
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    DateFormat('MMMM d').format(DateTime.now()),
-                                    style: const TextStyle(
-                                      fontFamily: 'Poppins',
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 40,
-                                      height: 1.0,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    '${DateFormat('yyyy').format(DateTime.now())} | ${DateFormat('EEEE').format(DateTime.now())} | ${DateFormat('h:mm a').format(DateTime.now())}',
-                                    style: const TextStyle(
-                                      fontFamily: 'Poppins',
-                                      color: Colors.white,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Image.asset(
-                              'assets/images/add.png',
-                              height: 60,
-                              width: 60,
-                              fit: BoxFit.contain,
-                            ),
-                          ],
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
+                    const SizedBox(height: 16),
 
-                  // Main Menu
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        const Text(
-                          'Main Menu',
-                          style: TextStyle(
-                            fontFamily: 'Poppins',
-                            color: Color(0xFF0D629E),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 22,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            _menuIcon(
-                              'Medicine',
-                              'assets/images/medicine.png',
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder:
-                                        (context) => MedicationScreen(
-                                          patientId: _patientId,
-                                        ),
-                                  ),
-                                );
-                              },
+                    // Main Menu
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'Main Menu',
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              color: Color(0xFF0D629E),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 22,
                             ),
-                            _menuIcon(
-                              'History',
-                              'assets/images/history.png',
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder:
-                                        (context) => HealthMetricsHistory(
-                                          patientId:
-                                              widget.patientData['patient_id'],
-                                        ),
-                                  ),
-                                );
-                              },
-                            ),
-                            _menuIcon(
-                              'Reminders',
-                              'assets/images/reminder.png',
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Latest Health Metric
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        const Text(
-                          'Latest Health Metric',
-                          style: TextStyle(
-                            fontFamily: 'Poppins',
-                            color: Color(0xFF0D629E),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 22,
                           ),
-                        ),
-                        const SizedBox(height: 12),
-                        if (metric != null) ...[
-                          _metricCard(
-                            title: 'Blood Glucose',
-                            value: metric['blood_glucose']?.toString() ?? '--',
-                            unit: 'mg/dL',
-                            tag: 'MOD',
-                            icon: Icons.bloodtype,
-                            taken: date,
-                          ),
+                          const SizedBox(height: 12),
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
-                              Expanded(
-                                child: _miniMetricCard(
-                                  title: 'Blood Pressure',
-                                  value: '${metric['bp_systolic'] ?? '--'}',
-                                  value2: '${metric['bp_diastolic'] ?? '--'}',
-                                  unit: 'mmHg',
-                                  taken: date,
-                                  status: classifyBloodPressure(
-                                    metric['bp_systolic'] as int?,
-                                    metric['bp_diastolic'] as int?,
-                                  ),
-                                ),
+                              _menuIcon(
+                                'Medicine',
+                                'assets/images/medicine.png',
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder:
+                                          (context) => MedicationScreen(
+                                            patientId: _patientId,
+                                          ),
+                                    ),
+                                  );
+                                },
                               ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _miniMetricCard(
-                                  title: 'Risk for Surgery',
-                                  value: '',
-                                  value2: '',
-                                  unit: '',
-                                  taken: date,
-                                  status:
-                                      metric['risk_classification']
-                                          ?.toString()
-                                          .toUpperCase() ??
-                                      'N/A',
-                                  isRisk: true,
-                                ),
+                              _menuIcon(
+                                'History',
+                                'assets/images/history.png',
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder:
+                                          (context) => HealthMetricsHistory(
+                                            patientId:
+                                                widget
+                                                    .patientData['patient_id'],
+                                          ),
+                                    ),
+                                  );
+                                },
+                              ),
+                              _menuIcon(
+                                'Reminders',
+                                'assets/images/reminder.png',
                               ),
                             ],
                           ),
-                        ] else
-                          const Text(
-                            'No metrics recorded yet.',
-                            style: TextStyle(color: Colors.grey),
-                          ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
+                    const SizedBox(height: 16),
 
-                  // ...existing code...
-                ],
+                    // Latest Health Metric
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'Latest Health Metric',
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              color: Color(0xFF0D629E),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 22,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          if (metric != null) ...[
+                            _metricCard(
+                              title: 'Blood Glucose',
+                              value:
+                                  metric['blood_glucose']?.toString() ?? '--',
+                              unit: 'mg/dL',
+                              tag: 'MOD',
+                              icon: Icons.bloodtype,
+                              taken: date,
+                            ),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _miniMetricCard(
+                                    title: 'Blood Pressure',
+                                    value: '${metric['bp_systolic'] ?? '--'}',
+                                    value2: '${metric['bp_diastolic'] ?? '--'}',
+                                    unit: 'mmHg',
+                                    taken: date,
+                                    status: classifyBloodPressure(
+                                      metric['bp_systolic'] as int?,
+                                      metric['bp_diastolic'] as int?,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: _miniMetricCard(
+                                    title: 'Risk for Surgery',
+                                    value: '',
+                                    value2: '',
+                                    unit: '',
+                                    taken: date,
+                                    status:
+                                        metric['risk_classification']
+                                            ?.toString()
+                                            .toUpperCase() ??
+                                        'N/A',
+                                    isRisk: true,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ] else
+                            const Text(
+                              'No metrics recorded yet.',
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // ...existing code...
+                  ],
+                ),
               ),
-            ),
-          );
-        },
-      ),
+            );
+          },
+        ),
       ),
     );
   }
 
   Widget _buildDrawer(BuildContext context, String patientName) {
-    final String? profilePicture = widget.patientData['patient_picture'] as String?;
-    
+    final String? profilePicture =
+        widget.patientData['patient_picture'] as String?;
+
     return Drawer(
       backgroundColor: Colors.white,
       child: Column(
@@ -733,16 +752,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 CircleAvatar(
                   radius: 50,
                   backgroundColor: Colors.white,
-                  backgroundImage: profilePicture != null && profilePicture.isNotEmpty
-                      ? NetworkImage(profilePicture)
-                      : null,
-                  child: profilePicture == null || profilePicture.isEmpty
-                      ? const Icon(
-                          Icons.person,
-                          size: 50,
-                          color: Color(0xFF1DA1F2),
-                        )
-                      : null,
+                  backgroundImage:
+                      profilePicture != null && profilePicture.isNotEmpty
+                          ? NetworkImage(profilePicture)
+                          : null,
+                  child:
+                      profilePicture == null || profilePicture.isEmpty
+                          ? const Icon(
+                            Icons.person,
+                            size: 50,
+                            color: Color(0xFF1DA1F2),
+                          )
+                          : null,
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -765,7 +786,10 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: EdgeInsets.zero,
               children: [
                 ListTile(
-                  leading: const Icon(Icons.camera_alt, color: Color(0xFF1DA1F2)),
+                  leading: const Icon(
+                    Icons.camera_alt,
+                    color: Color(0xFF1DA1F2),
+                  ),
                   title: const Text(
                     'Update Profile Picture',
                     style: TextStyle(
@@ -808,33 +832,40 @@ class _HomeScreenState extends State<HomeScreen> {
       // Show image source selection dialog
       final ImageSource? source = await showDialog<ImageSource>(
         context: context,
-        builder: (context) => AlertDialog(
-          title: const Text(
-            'Select Image Source',
-            style: TextStyle(fontFamily: 'Poppins'),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.camera_alt, color: Color(0xFF1DA1F2)),
-                title: const Text(
-                  'Camera',
-                  style: TextStyle(fontFamily: 'Poppins'),
-                ),
-                onTap: () => Navigator.pop(context, ImageSource.camera),
+        builder:
+            (context) => AlertDialog(
+              title: const Text(
+                'Select Image Source',
+                style: TextStyle(fontFamily: 'Poppins'),
               ),
-              ListTile(
-                leading: const Icon(Icons.photo_library, color: Color(0xFF1DA1F2)),
-                title: const Text(
-                  'Gallery',
-                  style: TextStyle(fontFamily: 'Poppins'),
-                ),
-                onTap: () => Navigator.pop(context, ImageSource.gallery),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ListTile(
+                    leading: const Icon(
+                      Icons.camera_alt,
+                      color: Color(0xFF1DA1F2),
+                    ),
+                    title: const Text(
+                      'Camera',
+                      style: TextStyle(fontFamily: 'Poppins'),
+                    ),
+                    onTap: () => Navigator.pop(context, ImageSource.camera),
+                  ),
+                  ListTile(
+                    leading: const Icon(
+                      Icons.photo_library,
+                      color: Color(0xFF1DA1F2),
+                    ),
+                    title: const Text(
+                      'Gallery',
+                      style: TextStyle(fontFamily: 'Poppins'),
+                    ),
+                    onTap: () => Navigator.pop(context, ImageSource.gallery),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
+            ),
       );
 
       if (source == null) return;
@@ -854,16 +885,15 @@ class _HomeScreenState extends State<HomeScreen> {
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => const Center(
-          child: CircularProgressIndicator(color: Color(0xFF1DA1F2)),
-        ),
+        builder:
+            (context) => const Center(
+              child: CircularProgressIndicator(color: Color(0xFF1DA1F2)),
+            ),
       );
 
       // Upload image and update patient record
-      final String newImageUrl = await _supabaseService.updatePatientProfilePicture(
-        patientId: _patientId,
-        imageFile: image,
-      );
+      final String newImageUrl = await _supabaseService
+          .updatePatientProfilePicture(patientId: _patientId, imageFile: image);
 
       // Update local patient data
       setState(() {
