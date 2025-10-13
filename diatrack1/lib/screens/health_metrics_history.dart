@@ -613,12 +613,10 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
   /// Classifies blood pressure based on systolic and diastolic values.
   String classifyBloodPressure(int? systolic, int? diastolic) {
     if (systolic == null || diastolic == null) return '';
-    if (systolic > 180 || diastolic > 120) return 'CRISIS';
+
     if (systolic >= 140 || diastolic >= 90) return 'HIGH';
     if (systolic >= 130 || diastolic >= 80) return 'ELEVATED';
-    if (systolic >= 120 && diastolic < 80) return 'ELEVATED';
-    if (systolic < 120 && diastolic < 80) return 'NORMAL';
-    return '';
+    return 'NORMAL';
   }
 }
 
@@ -676,22 +674,45 @@ class _TablesScreenState extends State<_TablesScreen> {
           Container(
             color: Colors.white,
             padding: const EdgeInsets.all(16),
-            child: TextField(
-              onChanged: (value) {
-                setState(() {
-                  _searchQuery = value;
-                });
-              },
-              decoration: InputDecoration(
-                hintText: 'Search',
-                prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFFF5F5F5),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFF0D629E), width: 1.5),
+              ),
+              child: TextField(
+                onChanged: (value) {
+                  setState(() {
+                    _searchQuery = value;
+                  });
+                },
+                decoration: InputDecoration(
+                  hintText: 'Search',
+                  hintStyle: const TextStyle(
+                    fontFamily: 'Poppins',
+                    color: Color(0xFF999999),
+                    fontSize: 14,
+                  ),
+                  prefixIcon: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Image.asset(
+                      'assets/images/search.png',
+                      width: 20,
+                      height: 20,
+                      color: const Color(0xFF0D629E),
+                    ),
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide.none,
+                  ),
+                  filled: true,
+                  fillColor: const Color(0xFFF5F5F5),
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 12,
+                    horizontal: 16,
+                  ),
                 ),
-                filled: true,
-                fillColor: const Color(0xFFF5F5F5),
-                contentPadding: const EdgeInsets.symmetric(vertical: 12),
               ),
             ),
           ),
@@ -703,60 +724,74 @@ class _TablesScreenState extends State<_TablesScreen> {
             child: Row(
               children: [
                 Expanded(
-                  child: OutlinedButton.icon(
+                  child: OutlinedButton(
                     onPressed: () {
                       _showFilterDialog();
                     },
-                    icon: const Icon(Icons.filter_list, size: 18),
-                    label: Text(
-                      _currentFilter == 'General Summary'
-                          ? 'Filter'
-                          : _currentFilter,
-                    ),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: const Color(0xFF0D629E),
                       side: const BorderSide(color: Color(0xFF0D629E)),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          'assets/images/filter.png',
+                          width: 18,
+                          height: 18,
+                          color: const Color(0xFF0D629E),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          _currentFilter == 'General Summary'
+                              ? 'Filter'
+                              : _currentFilter,
+                          style: const TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: OutlinedButton.icon(
+                  child: OutlinedButton(
                     onPressed: () {},
-                    icon: const Icon(Icons.download, size: 18),
-                    label: const Text('Export'),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: const Color(0xFF0D629E),
                       side: const BorderSide(color: Color(0xFF0D629E)),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          'assets/images/export.png',
+                          width: 18,
+                          height: 18,
+                          color: const Color(0xFF0D629E),
+                        ),
+                        const SizedBox(width: 8),
+                        const Text(
+                          'Export',
+                          style: TextStyle(fontFamily: 'Poppins', fontSize: 14),
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ],
             ),
           ),
-
-          // Current Filter Label
-          if (_currentFilter != 'General Summary')
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              color: const Color(0xFFF2FBFF),
-              child: Text(
-                _currentFilter,
-                style: const TextStyle(
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF0D629E),
-                  fontSize: 16,
-                ),
-              ),
-            ),
 
           // Content Area
           Expanded(child: _buildCurrentView()),
@@ -823,565 +858,873 @@ class _TablesScreenState extends State<_TablesScreen> {
   Widget _buildGeneralSummaryView() {
     return Padding(
       padding: const EdgeInsets.all(16),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0xFFE5E5E5)),
-        ),
-        child: Column(
-          children: [
-            // Header
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: const BoxDecoration(
-                color: Color(0xFFF2FBFF),
-                borderRadius: BorderRadius.vertical(top: Radius.circular(8)),
-              ),
-              child: Row(
-                children: [
-                  const Text(
-                    'Table',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontFamily: 'Poppins',
-                      fontSize: 14,
-                    ),
-                  ),
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {});
-                    },
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.refresh,
-                          size: 16,
-                          color: Color(0xFF0D629E),
-                        ),
-                        const SizedBox(width: 4),
-                        const Text(
-                          'Refresh',
-                          style: TextStyle(
-                            color: Color(0xFF0D629E),
-                            fontFamily: 'Poppins',
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.only(left: 4, bottom: 12),
+            child: Text(
+              'General Summary',
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontFamily: 'Poppins',
+                fontSize: 16,
+                color: Color(0xFF0D629E),
               ),
             ),
-
-            // Table Headers
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: const BoxDecoration(
-                border: Border(bottom: BorderSide(color: Color(0xFFE5E5E5))),
+          ),
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFFF2FBFF),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFF0D629E), width: 1.5),
               ),
-              child: Row(
+              child: Column(
                 children: [
-                  Expanded(
-                    flex: 1,
-                    child: Text(
-                      'Entry ID',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontFamily: 'Poppins',
-                        fontSize: 12,
-                        color: Colors.grey[700],
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 2,
-                    child: Text(
-                      'Date and Time',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontFamily: 'Poppins',
-                        fontSize: 12,
-                        color: Colors.grey[700],
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: Text(
-                      'Blood Glucose',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontFamily: 'Poppins',
-                        fontSize: 12,
-                        color: Colors.grey[700],
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: Text(
-                      'Blood Pressure',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontFamily: 'Poppins',
-                        fontSize: 12,
-                        color: Colors.grey[700],
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: Text(
-                      'Risk Classification',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontFamily: 'Poppins',
-                        fontSize: 12,
-                        color: Colors.grey[700],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Table Content
-            Expanded(
-              child: ListView.builder(
-                itemCount: widget.metrics.length,
-                itemBuilder: (context, index) {
-                  final metric = widget.metrics[index];
-                  return Container(
+                  // Header
+                  Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
-                      vertical: 8,
+                      vertical: 12,
                     ),
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(
-                          color:
-                              index == widget.metrics.length - 1
-                                  ? Colors.transparent
-                                  : const Color(0xFFE5E5E5),
-                        ),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFDCF4FF),
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(10),
                       ),
                     ),
                     child: Row(
                       children: [
-                        Expanded(
-                          flex: 1,
-                          child: Text(
-                            '#${1000 + index}',
-                            style: const TextStyle(
-                              fontFamily: 'Poppins',
-                              fontSize: 12,
-                            ),
+                        const Text(
+                          'Table',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontFamily: 'Poppins',
+                            fontSize: 14,
+                            color: Color(0xFF0D629E),
                           ),
                         ),
-                        Expanded(
-                          flex: 2,
-                          child: Text(
-                            DateFormatter.formatDateTime(metric.submissionDate),
-                            style: const TextStyle(
-                              fontFamily: 'Poppins',
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          flex: 1,
-                          child: Text(
-                            '${metric.bloodGlucose?.toStringAsFixed(0) ?? '--'} mg/dL',
-                            style: const TextStyle(
-                              fontFamily: 'Poppins',
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          flex: 1,
-                          child: Text(
-                            '${metric.bpSystolic ?? '--'}/${metric.bpDiastolic ?? '--'}',
-                            style: const TextStyle(
-                              fontFamily: 'Poppins',
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          flex: 1,
-                          child: Text(
-                            (metric.riskClassification ?? 'UNKNOWN')
-                                .toUpperCase(),
-                            style: TextStyle(
-                              fontFamily: 'Poppins',
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: getRiskColor(
-                                metric.riskClassification ?? 'UNKNOWN',
+                        const Spacer(),
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {});
+                          },
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.refresh,
+                                size: 16,
+                                color: Color(0xFF0D629E),
                               ),
-                            ),
+                              const SizedBox(width: 4),
+                              const Text(
+                                'Refresh',
+                                style: TextStyle(
+                                  color: Color(0xFF0D629E),
+                                  fontFamily: 'Poppins',
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
-                  );
-                },
+                  ),
+
+                  // Scrollable card entries
+                  Expanded(
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(12),
+                      itemCount: widget.metrics.length,
+                      itemBuilder: (context, index) {
+                        final totalMetrics = widget.metrics.length;
+                        final metric =
+                            widget
+                                .metrics[index]; // Newest first (descending order)
+                        final entryNumber =
+                            totalMetrics -
+                            index; // Keep original numbering: oldest=1, newest=highest
+                        final entryId =
+                            '#${entryNumber.toString().padLeft(4, '0')}';
+
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF2FBFF),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: const Color(0xFF0D629E),
+                              width: 1,
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Entry ID Header
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFFDCF4FF),
+                                  borderRadius: BorderRadius.vertical(
+                                    top: Radius.circular(7),
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Text(
+                                      'Entry ID',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontFamily: 'Poppins',
+                                        fontSize: 11,
+                                        color: Color(0xFF1B6CA4),
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                    Text(
+                                      entryId,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontFamily: 'Poppins',
+                                        fontSize: 11,
+                                        color: Color(0xFF1B6CA4),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              // Content in 2-column layout
+                              Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Column(
+                                  children: [
+                                    // Date and Time
+                                    Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        const Expanded(
+                                          flex: 2,
+                                          child: Text(
+                                            'Date and Time',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontFamily: 'Poppins',
+                                              fontSize: 10,
+                                              color: Color(0xFF1B6CA4),
+                                            ),
+                                          ),
+                                        ),
+                                        Expanded(
+                                          flex: 3,
+                                          child: Text(
+                                            DateFormatter.formatDateTime(
+                                              metric.submissionDate,
+                                            ),
+                                            style: const TextStyle(
+                                              fontFamily: 'Poppins',
+                                              fontSize: 10,
+                                              color: Color(0xFF1B6CA4),
+                                            ),
+                                            textAlign: TextAlign.right,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+
+                                    // Blood Glucose
+                                    Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        const Expanded(
+                                          flex: 2,
+                                          child: Text(
+                                            'Blood Glucose',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontFamily: 'Poppins',
+                                              fontSize: 10,
+                                              color: Color(0xFF1B6CA4),
+                                            ),
+                                          ),
+                                        ),
+                                        Expanded(
+                                          flex: 3,
+                                          child: Text(
+                                            '${metric.bloodGlucose?.toStringAsFixed(0) ?? '--'} mg/dL',
+                                            style: const TextStyle(
+                                              fontFamily: 'Poppins',
+                                              fontSize: 10,
+                                              color: Color(0xFF1B6CA4),
+                                            ),
+                                            textAlign: TextAlign.right,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+
+                                    // Blood Pressure
+                                    Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        const Expanded(
+                                          flex: 2,
+                                          child: Text(
+                                            'Blood Pressure',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontFamily: 'Poppins',
+                                              fontSize: 10,
+                                              color: Color(0xFF1B6CA4),
+                                            ),
+                                          ),
+                                        ),
+                                        Expanded(
+                                          flex: 3,
+                                          child: Text(
+                                            '${metric.bpSystolic ?? '--'}/${metric.bpDiastolic ?? '--'}',
+                                            style: const TextStyle(
+                                              fontFamily: 'Poppins',
+                                              fontSize: 10,
+                                              color: Color(0xFF1B6CA4),
+                                            ),
+                                            textAlign: TextAlign.right,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+
+                                    // Risk Classification
+                                    Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        const Expanded(
+                                          flex: 2,
+                                          child: Text(
+                                            'Risk Classification',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontFamily: 'Poppins',
+                                              fontSize: 10,
+                                              color: Color(0xFF1B6CA4),
+                                            ),
+                                          ),
+                                        ),
+                                        Expanded(
+                                          flex: 3,
+                                          child: Text(
+                                            (metric.riskClassification ??
+                                                    'UNKNOWN')
+                                                .toUpperCase(),
+                                            style: TextStyle(
+                                              fontFamily: 'Poppins',
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w600,
+                                              color: getRiskColor(
+                                                metric.riskClassification ??
+                                                    'UNKNOWN',
+                                              ),
+                                            ),
+                                            textAlign: TextAlign.right,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildSpecificTable(String metricType) {
+    String tableLabel = '';
+    switch (metricType) {
+      case 'glucose':
+        tableLabel = 'Blood Glucose Table';
+        break;
+      case 'pressure':
+        tableLabel = 'Blood Pressure Table';
+        break;
+      case 'risk':
+        tableLabel = 'Risk Class Table';
+        break;
+    }
+
     return Padding(
       padding: const EdgeInsets.all(16),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0xFFE5E5E5)),
-        ),
-        child: Column(
-          children: [
-            // Header
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: const BoxDecoration(
-                color: Color(0xFFF2FBFF),
-                borderRadius: BorderRadius.vertical(top: Radius.circular(8)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 4, bottom: 12),
+            child: Text(
+              tableLabel,
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontFamily: 'Poppins',
+                fontSize: 16,
+                color: Color(0xFF0D629E),
               ),
-              child: Row(
+            ),
+          ),
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFFF2FBFF),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFF0D629E), width: 1.5),
+              ),
+              child: Column(
                 children: [
-                  const Text(
-                    'Table',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontFamily: 'Poppins',
-                      fontSize: 14,
+                  // Header
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
                     ),
-                  ),
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {});
-                    },
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFDCF4FF),
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(10),
+                      ),
+                    ),
                     child: Row(
-                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(
-                          Icons.refresh,
-                          size: 16,
-                          color: Color(0xFF0D629E),
-                        ),
-                        const SizedBox(width: 4),
                         const Text(
-                          'Refresh',
+                          'Table',
                           style: TextStyle(
-                            color: Color(0xFF0D629E),
+                            fontWeight: FontWeight.w600,
                             fontFamily: 'Poppins',
-                            fontSize: 12,
+                            fontSize: 14,
+                            color: Color(0xFF0D629E),
+                          ),
+                        ),
+                        const Spacer(),
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {});
+                          },
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.refresh,
+                                size: 16,
+                                color: Color(0xFF0D629E),
+                              ),
+                              const SizedBox(width: 4),
+                              const Text(
+                                'Refresh',
+                                style: TextStyle(
+                                  color: Color(0xFF0D629E),
+                                  fontFamily: 'Poppins',
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
                   ),
+
+                  // Table Content - Custom implementation with sticky header
+                  // Sticky Table Header
+                  Container(
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFDCF4FF),
+                      border: Border(
+                        bottom: BorderSide(color: Color(0xFF0D629E), width: 1),
+                      ),
+                    ),
+                    child: _buildTableHeaderRow(metricType),
+                  ),
+                  // Scrollable Table Rows
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Column(children: _buildTableRows(metricType)),
+                    ),
+                  ),
                 ],
               ),
             ),
-
-            // Table Headers
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: const BoxDecoration(
-                border: Border(bottom: BorderSide(color: Color(0xFFE5E5E5))),
-              ),
-              child: _buildTableHeaders(metricType),
-            ),
-
-            // Table Content
-            Expanded(
-              child: ListView.builder(
-                itemCount: widget.metrics.length,
-                itemBuilder: (context, index) {
-                  final metric = widget.metrics[index];
-                  return Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(
-                          color:
-                              index == widget.metrics.length - 1
-                                  ? Colors.transparent
-                                  : const Color(0xFFE5E5E5),
-                        ),
-                      ),
-                    ),
-                    child: _buildTableRow(metric, index, metricType),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildTableHeaders(String metricType) {
+  Widget _buildTableHeaderRow(String metricType) {
     switch (metricType) {
       case 'glucose':
-        return Row(
-          children: [
-            Expanded(
-              flex: 1,
-              child: Text(
-                'Entry ID',
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontFamily: 'Poppins',
-                  fontSize: 12,
-                  color: Colors.grey[700],
+        return IntrinsicHeight(
+          child: Row(
+            children: [
+              Expanded(
+                flex: 1,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                  child: const Text(
+                    'Entry ID',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Poppins',
+                      fontSize: 11,
+                      color: Color(0xFF1B6CA4),
+                    ),
+                  ),
                 ),
               ),
-            ),
-            Expanded(
-              flex: 2,
-              child: Text(
-                'Date and Time',
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontFamily: 'Poppins',
-                  fontSize: 12,
-                  color: Colors.grey[700],
+              Expanded(
+                flex: 2,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                  child: const Text(
+                    'Date and Time',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Poppins',
+                      fontSize: 11,
+                      color: Color(0xFF1B6CA4),
+                    ),
+                  ),
                 ),
               ),
-            ),
-            Expanded(
-              flex: 1,
-              child: Text(
-                'Blood Glucose',
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontFamily: 'Poppins',
-                  fontSize: 12,
-                  color: Colors.grey[700],
+              Expanded(
+                flex: 1,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                  child: const Text(
+                    'Blood Glucose',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Poppins',
+                      fontSize: 11,
+                      color: Color(0xFF1B6CA4),
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         );
       case 'pressure':
-        return Row(
-          children: [
-            Expanded(
-              flex: 1,
-              child: Text(
-                'Entry ID',
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontFamily: 'Poppins',
-                  fontSize: 12,
-                  color: Colors.grey[700],
+        return IntrinsicHeight(
+          child: Row(
+            children: [
+              Expanded(
+                flex: 1,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                  child: const Text(
+                    'Entry ID',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Poppins',
+                      fontSize: 11,
+                      color: Color(0xFF1B6CA4),
+                    ),
+                  ),
                 ),
               ),
-            ),
-            Expanded(
-              flex: 2,
-              child: Text(
-                'Date and Time',
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontFamily: 'Poppins',
-                  fontSize: 12,
-                  color: Colors.grey[700],
+              Expanded(
+                flex: 2,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                  child: const Text(
+                    'Date and Time',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Poppins',
+                      fontSize: 11,
+                      color: Color(0xFF1B6CA4),
+                    ),
+                  ),
                 ),
               ),
-            ),
-            Expanded(
-              flex: 1,
-              child: Text(
-                'Blood Pressure',
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontFamily: 'Poppins',
-                  fontSize: 12,
-                  color: Colors.grey[700],
+              Expanded(
+                flex: 1,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                  child: const Text(
+                    'BP',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Poppins',
+                      fontSize: 11,
+                      color: Color(0xFF1B6CA4),
+                    ),
+                  ),
                 ),
               ),
-            ),
-            Expanded(
-              flex: 1,
-              child: Text(
-                'BP Class',
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontFamily: 'Poppins',
-                  fontSize: 12,
-                  color: Colors.grey[700],
+              Expanded(
+                flex: 1,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                  child: const Text(
+                    'Class',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Poppins',
+                      fontSize: 11,
+                      color: Color(0xFF1B6CA4),
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         );
       case 'risk':
-        return Row(
-          children: [
-            Expanded(
-              flex: 1,
-              child: Text(
-                'Entry ID',
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontFamily: 'Poppins',
-                  fontSize: 12,
-                  color: Colors.grey[700],
+        return IntrinsicHeight(
+          child: Row(
+            children: [
+              Expanded(
+                flex: 1,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                  child: const Text(
+                    'Entry ID',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Poppins',
+                      fontSize: 11,
+                      color: Color(0xFF1B6CA4),
+                    ),
+                  ),
                 ),
               ),
-            ),
-            Expanded(
-              flex: 2,
-              child: Text(
-                'Date and Time',
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontFamily: 'Poppins',
-                  fontSize: 12,
-                  color: Colors.grey[700],
+              Expanded(
+                flex: 2,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                  child: const Text(
+                    'Date and Time',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Poppins',
+                      fontSize: 11,
+                      color: Color(0xFF1B6CA4),
+                    ),
+                  ),
                 ),
               ),
-            ),
-            Expanded(
-              flex: 1,
-              child: Text(
-                'Risk Class',
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontFamily: 'Poppins',
-                  fontSize: 12,
-                  color: Colors.grey[700],
+              Expanded(
+                flex: 1,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                  child: const Text(
+                    'Risk Class',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Poppins',
+                      fontSize: 11,
+                      color: Color(0xFF1B6CA4),
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         );
       default:
         return const SizedBox.shrink();
     }
   }
 
-  Widget _buildTableRow(HealthMetric metric, int index, String metricType) {
+  List<Widget> _buildTableRows(String metricType) {
+    final totalMetrics = widget.metrics.length;
+    return List<Widget>.generate(totalMetrics, (index) {
+      final metric = widget.metrics[index]; // Newest first (descending order)
+      final entryNumber =
+          totalMetrics -
+          index; // Keep original numbering: oldest=1, newest=highest
+      final isLastRow = index == totalMetrics - 1;
+
+      return Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFFF2FBFF),
+          border: Border(
+            bottom: BorderSide(
+              color: isLastRow ? Colors.transparent : const Color(0xFF0D629E),
+              width: 1,
+            ),
+          ),
+        ),
+        child: _buildTableDataRow(metric, entryNumber, metricType),
+      );
+    });
+  }
+
+  Widget _buildTableDataRow(
+    HealthMetric metric,
+    int entryNumber,
+    String metricType,
+  ) {
+    final entryId = '#${entryNumber.toString().padLeft(4, '0')}';
+
     switch (metricType) {
       case 'glucose':
-        return Row(
-          children: [
-            Expanded(
-              flex: 1,
-              child: Text(
-                '#${1000 + index}',
-                style: const TextStyle(fontFamily: 'Poppins', fontSize: 12),
+        return IntrinsicHeight(
+          child: Row(
+            children: [
+              Expanded(
+                flex: 1,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                  child: Text(
+                    entryId,
+                    style: const TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 11,
+                      color: Color(0xFF1B6CA4),
+                    ),
+                  ),
+                ),
               ),
-            ),
-            Expanded(
-              flex: 2,
-              child: Text(
-                DateFormatter.formatDateTime(metric.submissionDate),
-                style: const TextStyle(fontFamily: 'Poppins', fontSize: 12),
+              Expanded(
+                flex: 2,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                  child: Text(
+                    DateFormatter.formatDateTime(metric.submissionDate),
+                    style: const TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 11,
+                      color: Color(0xFF1B6CA4),
+                    ),
+                  ),
+                ),
               ),
-            ),
-            Expanded(
-              flex: 1,
-              child: Text(
-                '${metric.bloodGlucose?.toStringAsFixed(0) ?? '--'} mg/dL',
-                style: const TextStyle(fontFamily: 'Poppins', fontSize: 12),
+              Expanded(
+                flex: 1,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                  child: Text(
+                    '${metric.bloodGlucose?.toStringAsFixed(0) ?? '--'} mg/dL',
+                    style: const TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 11,
+                      color: Color(0xFF1B6CA4),
+                    ),
+                  ),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         );
       case 'pressure':
-        return Row(
-          children: [
-            Expanded(
-              flex: 1,
-              child: Text(
-                '#${1000 + index}',
-                style: const TextStyle(fontFamily: 'Poppins', fontSize: 12),
-              ),
-            ),
-            Expanded(
-              flex: 2,
-              child: Text(
-                DateFormatter.formatDateTime(metric.submissionDate),
-                style: const TextStyle(fontFamily: 'Poppins', fontSize: 12),
-              ),
-            ),
-            Expanded(
-              flex: 1,
-              child: Text(
-                '${metric.bpSystolic ?? '--'}/${metric.bpDiastolic ?? '--'}',
-                style: const TextStyle(fontFamily: 'Poppins', fontSize: 12),
-              ),
-            ),
-            Expanded(
-              flex: 1,
-              child: Text(
-                (metric.bpClassification ?? '').toUpperCase(),
-                style: TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color:
-                      {
-                        'NORMAL': Color(0xFF19AC4A),
-                        'ELEVATED': Color(0xFF199DAC),
-                        'HIGH': Color(0xFFAC191F),
-                        'CRISIS': Colors.red,
-                      }[metric.bpClassification?.toUpperCase() ?? ''] ??
-                      Colors.grey,
+        return IntrinsicHeight(
+          child: Row(
+            children: [
+              Expanded(
+                flex: 1,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                  child: Text(
+                    entryId,
+                    style: const TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 11,
+                      color: Color(0xFF1B6CA4),
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ],
+              Expanded(
+                flex: 2,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                  child: Text(
+                    DateFormatter.formatDateTime(metric.submissionDate),
+                    style: const TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 11,
+                      color: Color(0xFF1B6CA4),
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                flex: 1,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                  child: Text(
+                    '${metric.bpSystolic ?? '--'}/${metric.bpDiastolic ?? '--'}',
+                    style: const TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 11,
+                      color: Color(0xFF1B6CA4),
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                flex: 1,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                  child: Text(
+                    classifyBloodPressure(
+                      metric.bpSystolic,
+                      metric.bpDiastolic,
+                    ).toUpperCase(),
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color:
+                          {
+                            'NORMAL': Color(0xFF19AC4A),
+                            'ELEVATED': Color(0xFF199DAC),
+                            'HIGH': Color(0xFFAC191F),
+                          }[classifyBloodPressure(
+                            metric.bpSystolic,
+                            metric.bpDiastolic,
+                          ).toUpperCase()] ??
+                          Colors.grey,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         );
       case 'risk':
-        return Row(
-          children: [
-            Expanded(
-              flex: 1,
-              child: Text(
-                '#${1000 + index}',
-                style: const TextStyle(fontFamily: 'Poppins', fontSize: 12),
-              ),
-            ),
-            Expanded(
-              flex: 2,
-              child: Text(
-                DateFormatter.formatDateTime(metric.submissionDate),
-                style: const TextStyle(fontFamily: 'Poppins', fontSize: 12),
-              ),
-            ),
-            Expanded(
-              flex: 1,
-              child: Text(
-                (metric.riskClassification ?? 'UNKNOWN').toUpperCase(),
-                style: TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: getRiskColor(metric.riskClassification ?? 'UNKNOWN'),
+        return IntrinsicHeight(
+          child: Row(
+            children: [
+              Expanded(
+                flex: 1,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                  child: Text(
+                    entryId,
+                    style: const TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 11,
+                      color: Color(0xFF1B6CA4),
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ],
+              Expanded(
+                flex: 2,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                  child: Text(
+                    DateFormatter.formatDateTime(metric.submissionDate),
+                    style: const TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 11,
+                      color: Color(0xFF1B6CA4),
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                flex: 1,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                  child: Text(
+                    (metric.riskClassification ?? 'UNKNOWN').toUpperCase(),
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: getRiskColor(
+                        metric.riskClassification ?? 'UNKNOWN',
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         );
       default:
         return const SizedBox.shrink();
@@ -1399,5 +1742,14 @@ class _TablesScreenState extends State<_TablesScreen> {
       default:
         return Colors.grey;
     }
+  }
+
+  /// Classifies blood pressure based on systolic and diastolic values.
+  String classifyBloodPressure(int? systolic, int? diastolic) {
+    if (systolic == null || diastolic == null) return '';
+
+    if (systolic >= 140 || diastolic >= 90) return 'HIGH';
+    if (systolic >= 130 || diastolic >= 80) return 'ELEVATED';
+    return 'NORMAL';
   }
 }

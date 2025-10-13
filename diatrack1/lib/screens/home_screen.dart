@@ -19,12 +19,11 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   /// Classifies blood pressure values into categories
   String classifyBloodPressure(int? systolic, int? diastolic) {
-    if (systolic == null || diastolic == null) return 'UNKNOWN';
-    if (systolic > 180 || diastolic > 120) return 'CRISIS';
+    if (systolic == null || diastolic == null) return '';
+
     if (systolic >= 140 || diastolic >= 90) return 'HIGH';
     if (systolic >= 130 || diastolic >= 80) return 'ELEVATED';
-    if (systolic < 120 && diastolic < 80) return 'NORMAL';
-    return 'ELEVATED';
+    return 'NORMAL';
   }
 
   final SupabaseService _supabaseService = SupabaseService();

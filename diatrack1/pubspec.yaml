@@ -74,6 +74,10 @@ flutter:
     - assets/images/diatrack_icon.png
     - assets/images/edit.png
     - assets/images/delete.png
+    - assets/images/filter.png
+    - assets/images/search.png
+    - assets/images/export.png
+
     - .env
     
   fonts:
