@@ -307,4 +307,33 @@ class SupabaseService {
       throw Exception('Failed to delete image: $e');
     }
   }
+
+  /// Upload patient profile picture to Supabase storage and update the patient record
+  Future<String> updatePatientProfilePicture({
+    required String patientId,
+    required XFile imageFile,
+  }) async {
+    try {
+      // Upload image to patient-profile bucket
+      final imageUrl = await uploadImage(
+        imageFile,
+        'patient-profile',
+        patientId,
+      );
+
+      if (imageUrl == null) {
+        throw Exception('Failed to upload image - received null URL');
+      }
+
+      // Update patient record with the new image URL
+      await supabase
+          .from('patients')
+          .update({'patient_picture': imageUrl})
+          .eq('patient_id', patientId);
+
+      return imageUrl;
+    } catch (e) {
+      throw Exception('Failed to update profile picture: $e');
+    }
+  }
 }

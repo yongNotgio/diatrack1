@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:image_picker/image_picker.dart';
 import '../services/supabase_service.dart';
 import 'add_metrics_screen.dart';
 import 'login_screen.dart';
@@ -118,14 +119,24 @@ class _HomeScreenState extends State<HomeScreen> {
         widget.patientData['diagnosis'] ?? 'Type II - Diabetes';
     final String surgeryStatus = widget.patientData['phase'] ?? 'Not Found';
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFF),
-      appBar: AppBar(
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) async {
+        if (didPop) return;
+        _confirmLogout();
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF8FAFF),
+        appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.menu, color: Color(0xFF1DA1F2)),
-          onPressed: () {},
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu, color: Color(0xFF1DA1F2)),
+            onPressed: () {
+              Scaffold.of(context).openDrawer();
+            },
+          ),
         ),
         title: Padding(
           padding: const EdgeInsets.only(right: 8.0),
@@ -151,13 +162,9 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             onPressed: () {},
           ),
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.redAccent),
-            tooltip: 'Logout',
-            onPressed: _confirmLogout,
-          ),
         ],
       ),
+      drawer: _buildDrawer(context, patientName),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: _metricsFuture,
         builder: (context, snapshot) {
@@ -256,9 +263,18 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         CircleAvatar(
                           radius: 28,
-                          backgroundImage: AssetImage(
-                            'assets/images/avatar.png',
-                          ),
+                          backgroundColor: const Color(0xFFE6F3FF),
+                          backgroundImage: widget.patientData['patient_picture'] != null &&
+                                  (widget.patientData['patient_picture'] as String).isNotEmpty
+                              ? NetworkImage(widget.patientData['patient_picture'] as String)
+                              : null,
+                          child: widget.patientData['patient_picture'] == null ||
+                                  (widget.patientData['patient_picture'] as String).isEmpty
+                              ? Image.asset(
+                                  'assets/images/avatar.png',
+                                  fit: BoxFit.cover,
+                                )
+                              : null,
                         ),
                       ],
                     ),
@@ -688,7 +704,206 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         },
       ),
+      ),
     );
+  }
+
+  Widget _buildDrawer(BuildContext context, String patientName) {
+    final String? profilePicture = widget.patientData['patient_picture'] as String?;
+    
+    return Drawer(
+      backgroundColor: Colors.white,
+      child: Column(
+        children: [
+          // Drawer Header
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(24, 60, 24, 24),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF0D629E), Color(0xFF1DA1F2)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Profile Picture
+                CircleAvatar(
+                  radius: 50,
+                  backgroundColor: Colors.white,
+                  backgroundImage: profilePicture != null && profilePicture.isNotEmpty
+                      ? NetworkImage(profilePicture)
+                      : null,
+                  child: profilePicture == null || profilePicture.isEmpty
+                      ? const Icon(
+                          Icons.person,
+                          size: 50,
+                          color: Color(0xFF1DA1F2),
+                        )
+                      : null,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  patientName,
+                  style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+
+          // Menu Items
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.camera_alt, color: Color(0xFF1DA1F2)),
+                  title: const Text(
+                    'Update Profile Picture',
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 16,
+                      color: Color(0xFF0D629E),
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context); // Close drawer
+                    _updateProfilePicture();
+                  },
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.logout, color: Colors.redAccent),
+                  title: const Text(
+                    'Logout',
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 16,
+                      color: Colors.redAccent,
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context); // Close drawer
+                    _confirmLogout();
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _updateProfilePicture() async {
+    try {
+      // Show image source selection dialog
+      final ImageSource? source = await showDialog<ImageSource>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text(
+            'Select Image Source',
+            style: TextStyle(fontFamily: 'Poppins'),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.camera_alt, color: Color(0xFF1DA1F2)),
+                title: const Text(
+                  'Camera',
+                  style: TextStyle(fontFamily: 'Poppins'),
+                ),
+                onTap: () => Navigator.pop(context, ImageSource.camera),
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library, color: Color(0xFF1DA1F2)),
+                title: const Text(
+                  'Gallery',
+                  style: TextStyle(fontFamily: 'Poppins'),
+                ),
+                onTap: () => Navigator.pop(context, ImageSource.gallery),
+              ),
+            ],
+          ),
+        ),
+      );
+
+      if (source == null) return;
+
+      // Pick image
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(
+        source: source,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 85,
+      );
+
+      if (image == null) return;
+
+      // Show loading dialog
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(color: Color(0xFF1DA1F2)),
+        ),
+      );
+
+      // Upload image and update patient record
+      final String newImageUrl = await _supabaseService.updatePatientProfilePicture(
+        patientId: _patientId,
+        imageFile: image,
+      );
+
+      // Update local patient data
+      setState(() {
+        widget.patientData['patient_picture'] = newImageUrl;
+      });
+
+      // Close loading dialog
+      if (mounted) Navigator.pop(context);
+
+      // Show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Profile picture updated successfully!',
+              style: TextStyle(fontFamily: 'Poppins'),
+            ),
+            backgroundColor: Color(0xFF19AC4A),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      // Close loading dialog if open
+      if (mounted) Navigator.pop(context);
+
+      // Show error message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Failed to update profile picture: $e',
+              style: const TextStyle(fontFamily: 'Poppins'),
+            ),
+            backgroundColor: Colors.redAccent,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
   }
 
   Widget _tag(String text) {
