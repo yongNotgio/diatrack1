@@ -565,6 +565,37 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 8),
+                      // Pulse Rate
+                      if (metric.pulseRate != null)
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              '${metric.pulseRate}',
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w500,
+                                color: Color(0xFF7BA5BB),
+                                fontFamily: 'Poppins',
+                                height: 1.0,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 2),
+                              child: Text(
+                                'bpm',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w400,
+                                  color: Colors.grey[600],
+                                  fontFamily: 'Poppins',
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                     ],
                   ),
                 ),
@@ -1106,6 +1137,39 @@ class _TablesScreenState extends State<_TablesScreen> {
                                     ),
                                     const SizedBox(height: 8),
 
+                                    // Pulse Rate
+                                    Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        const Expanded(
+                                          flex: 2,
+                                          child: Text(
+                                            'Pulse Rate',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontFamily: 'Poppins',
+                                              fontSize: 10,
+                                              color: Color(0xFF1B6CA4),
+                                            ),
+                                          ),
+                                        ),
+                                        Expanded(
+                                          flex: 3,
+                                          child: Text(
+                                            '${metric.pulseRate ?? '--'} bpm',
+                                            style: const TextStyle(
+                                              fontFamily: 'Poppins',
+                                              fontSize: 10,
+                                              color: Color(0xFF1B6CA4),
+                                            ),
+                                            textAlign: TextAlign.right,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+
                                     // Risk Classification
                                     Row(
                                       crossAxisAlignment:
@@ -1350,7 +1414,7 @@ class _TablesScreenState extends State<_TablesScreen> {
                 flex: 1,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
+                    horizontal: 8,
                     vertical: 12,
                   ),
                   child: const Text(
@@ -1358,7 +1422,7 @@ class _TablesScreenState extends State<_TablesScreen> {
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontFamily: 'Poppins',
-                      fontSize: 11,
+                      fontSize: 10,
                       color: Color(0xFF1B6CA4),
                     ),
                   ),
@@ -1368,7 +1432,7 @@ class _TablesScreenState extends State<_TablesScreen> {
                 flex: 2,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
+                    horizontal: 8,
                     vertical: 12,
                   ),
                   child: const Text(
@@ -1376,7 +1440,7 @@ class _TablesScreenState extends State<_TablesScreen> {
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontFamily: 'Poppins',
-                      fontSize: 11,
+                      fontSize: 10,
                       color: Color(0xFF1B6CA4),
                     ),
                   ),
@@ -1386,7 +1450,7 @@ class _TablesScreenState extends State<_TablesScreen> {
                 flex: 1,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
+                    horizontal: 6,
                     vertical: 12,
                   ),
                   child: const Text(
@@ -1394,7 +1458,7 @@ class _TablesScreenState extends State<_TablesScreen> {
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontFamily: 'Poppins',
-                      fontSize: 11,
+                      fontSize: 10,
                       color: Color(0xFF1B6CA4),
                     ),
                   ),
@@ -1404,7 +1468,25 @@ class _TablesScreenState extends State<_TablesScreen> {
                 flex: 1,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
+                    horizontal: 4,
+                    vertical: 12,
+                  ),
+                  child: const Text(
+                    'Pulse',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Poppins',
+                      fontSize: 10,
+                      color: Color(0xFF1B6CA4),
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                flex: 1,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
                     vertical: 12,
                   ),
                   child: const Text(
@@ -1412,7 +1494,7 @@ class _TablesScreenState extends State<_TablesScreen> {
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontFamily: 'Poppins',
-                      fontSize: 11,
+                      fontSize: 10,
                       color: Color(0xFF1B6CA4),
                     ),
                   ),
@@ -1547,13 +1629,27 @@ class _TablesScreenState extends State<_TablesScreen> {
                     horizontal: 12,
                     vertical: 12,
                   ),
-                  child: Text(
-                    DateFormatter.formatDateTime(metric.submissionDate),
-                    style: const TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 11,
-                      color: Color(0xFF1B6CA4),
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        DateFormatter.formatDateOnly(metric.submissionDate),
+                        style: const TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 11,
+                          color: Color(0xFF1B6CA4),
+                        ),
+                      ),
+                      Text(
+                        DateFormatter.formatTimeOnly(metric.submissionDate),
+                        style: const TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 10,
+                          color: Color(0xFF1B6CA4),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -1585,14 +1681,14 @@ class _TablesScreenState extends State<_TablesScreen> {
                 flex: 1,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
+                    horizontal: 8,
                     vertical: 12,
                   ),
                   child: Text(
                     entryId,
                     style: const TextStyle(
                       fontFamily: 'Poppins',
-                      fontSize: 11,
+                      fontSize: 10,
                       color: Color(0xFF1B6CA4),
                     ),
                   ),
@@ -1602,16 +1698,30 @@ class _TablesScreenState extends State<_TablesScreen> {
                 flex: 2,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
+                    horizontal: 8,
                     vertical: 12,
                   ),
-                  child: Text(
-                    DateFormatter.formatDateTime(metric.submissionDate),
-                    style: const TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 11,
-                      color: Color(0xFF1B6CA4),
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        DateFormatter.formatDateOnly(metric.submissionDate),
+                        style: const TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 10,
+                          color: Color(0xFF1B6CA4),
+                        ),
+                      ),
+                      Text(
+                        DateFormatter.formatTimeOnly(metric.submissionDate),
+                        style: const TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 9,
+                          color: Color(0xFF1B6CA4),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -1619,14 +1729,14 @@ class _TablesScreenState extends State<_TablesScreen> {
                 flex: 1,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
+                    horizontal: 6,
                     vertical: 12,
                   ),
                   child: Text(
                     '${metric.bpSystolic ?? '--'}/${metric.bpDiastolic ?? '--'}',
                     style: const TextStyle(
                       fontFamily: 'Poppins',
-                      fontSize: 11,
+                      fontSize: 10,
                       color: Color(0xFF1B6CA4),
                     ),
                   ),
@@ -1636,7 +1746,24 @@ class _TablesScreenState extends State<_TablesScreen> {
                 flex: 1,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
+                    horizontal: 4,
+                    vertical: 12,
+                  ),
+                  child: Text(
+                    '${metric.pulseRate ?? '--'}',
+                    style: const TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 10,
+                      color: Color(0xFF1B6CA4),
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                flex: 1,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
                     vertical: 12,
                   ),
                   child: Text(
@@ -1646,7 +1773,7 @@ class _TablesScreenState extends State<_TablesScreen> {
                     ).toUpperCase(),
                     style: TextStyle(
                       fontFamily: 'Poppins',
-                      fontSize: 10,
+                      fontSize: 9,
                       fontWeight: FontWeight.w600,
                       color:
                           {
@@ -1693,13 +1820,27 @@ class _TablesScreenState extends State<_TablesScreen> {
                     horizontal: 12,
                     vertical: 12,
                   ),
-                  child: Text(
-                    DateFormatter.formatDateTime(metric.submissionDate),
-                    style: const TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 11,
-                      color: Color(0xFF1B6CA4),
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        DateFormatter.formatDateOnly(metric.submissionDate),
+                        style: const TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 11,
+                          color: Color(0xFF1B6CA4),
+                        ),
+                      ),
+                      Text(
+                        DateFormatter.formatTimeOnly(metric.submissionDate),
+                        style: const TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 10,
+                          color: Color(0xFF1B6CA4),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),

@@ -29,6 +29,21 @@ class DateFormatter {
     return '$month/$day/$year | $hour12:$minute $ampm';
   }
 
+  static String formatDateOnly(DateTime date) {
+    final month = date.month.toString().padLeft(2, '0');
+    final day = date.day.toString().padLeft(2, '0');
+    final year = date.year;
+    return '$month/$day/$year';
+  }
+
+  static String formatTimeOnly(DateTime date) {
+    final minute = date.minute.toString().padLeft(2, '0');
+    final ampm = date.hour >= 12 ? 'PM' : 'AM';
+    final hour12 =
+        date.hour > 12 ? date.hour - 12 : (date.hour == 0 ? 12 : date.hour);
+    return '$hour12:$minute $ampm';
+  }
+
   static String formatDateWithDay(DateTime date) {
     final days = [
       'Monday',

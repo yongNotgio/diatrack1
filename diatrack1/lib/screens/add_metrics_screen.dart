@@ -28,6 +28,7 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
   final _glucoseController = TextEditingController();
   final _systolicController = TextEditingController();
   final _diastolicController = TextEditingController();
+  final _pulseController = TextEditingController();
   final _notesController = TextEditingController();
 
   XFile? _woundImageFile;
@@ -48,6 +49,7 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
     _glucoseController.text = metric['blood_glucose']?.toString() ?? '';
     _systolicController.text = metric['bp_systolic']?.toString() ?? '';
     _diastolicController.text = metric['bp_diastolic']?.toString() ?? '';
+    _pulseController.text = metric['pulse_rate']?.toString() ?? '';
     _notesController.text = metric['notes']?.toString() ?? '';
     _woundPhotoUrl = metric['wound_photo_url']?.toString();
   }
@@ -124,6 +126,7 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
         bloodGlucose: double.tryParse(_glucoseController.text),
         bpSystolic: int.tryParse(_systolicController.text),
         bpDiastolic: int.tryParse(_diastolicController.text),
+        pulseRate: int.tryParse(_pulseController.text),
         woundPhotoUrl: _woundPhotoUrl,
         notes: _notesController.text.trim(),
         metricId: widget.existingMetric?['id'],
@@ -353,6 +356,75 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
                               width: 190,
                               child: TextFormField(
                                 controller: _diastolicController,
+                                decoration: InputDecoration(
+                                  isDense: true,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 14,
+                                  ),
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(
+                                      color: Color(0xFF0D629E),
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(
+                                      color: Color(0xFF0D629E),
+                                    ),
+                                  ),
+                                ),
+                                style: TextStyle(fontFamily: 'Poppins'),
+                                keyboardType: TextInputType.number,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              width: 80,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Pulse',
+                                    style: TextStyle(
+                                      fontFamily: 'Poppins',
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 23,
+                                      color: Color(0xFF0D629E),
+                                    ),
+                                    overflow: TextOverflow.visible,
+                                    softWrap: false,
+                                  ),
+                                  const Text(
+                                    'bpm',
+                                    style: TextStyle(
+                                      fontFamily: 'Poppins',
+                                      fontSize: 14,
+                                      color: Color(0xFF0D629E),
+                                    ),
+                                    overflow: TextOverflow.visible,
+                                    softWrap: false,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 24),
+                            const SizedBox(width: 30),
+                            SizedBox(
+                              width: 190,
+                              child: TextFormField(
+                                controller: _pulseController,
                                 decoration: InputDecoration(
                                   isDense: true,
                                   contentPadding: const EdgeInsets.symmetric(
