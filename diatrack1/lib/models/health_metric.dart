@@ -13,6 +13,14 @@ class HealthMetric {
   final DateTime submissionDate;
   final DateTime updatedAt;
 
+  // Doctor annotations
+  final String? woundDiagnosis;
+  final List<String>? woundCare;
+  final List<String>? woundDressing;
+  final List<String>? woundMedication;
+  final List<String>? woundFollowUp;
+  final String? woundImportantNotes;
+
   HealthMetric({
     required this.id,
     required this.patientId,
@@ -27,6 +35,12 @@ class HealthMetric {
     required this.submissionDate,
     required this.updatedAt,
     this.bpClassification,
+    this.woundDiagnosis,
+    this.woundCare,
+    this.woundDressing,
+    this.woundMedication,
+    this.woundFollowUp,
+    this.woundImportantNotes,
   });
 
   factory HealthMetric.fromMap(Map<String, dynamic> map) {
@@ -44,6 +58,24 @@ class HealthMetric {
       submissionDate: DateTime.parse(map['submission_date']),
       updatedAt: DateTime.parse(map['updated_at']),
       bpClassification: map['bp_classification'],
+      woundDiagnosis: map['wound_diagnosis'],
+      woundCare:
+          map['wound_care'] != null
+              ? List<String>.from(map['wound_care'])
+              : null,
+      woundDressing:
+          map['wound_dressing'] != null
+              ? List<String>.from(map['wound_dressing'])
+              : null,
+      woundMedication:
+          map['wound_medication'] != null
+              ? List<String>.from(map['wound_medication'])
+              : null,
+      woundFollowUp:
+          map['wound_follow_up'] != null
+              ? List<String>.from(map['wound_follow_up'])
+              : null,
+      woundImportantNotes: map['wound_important-notes'],
     );
   }
 
