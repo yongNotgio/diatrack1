@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'notifications_screen.dart';
 
 class Medication {
   final String id;
@@ -149,7 +150,16 @@ class _MedicationScreenState extends State<MedicationScreen> {
               Icons.notifications_none,
               color: Color(0xFF1DA1F2),
             ),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder:
+                      (context) =>
+                          NotificationsScreen(patientId: widget.patientId),
+                ),
+              );
+            },
           ),
         ],
         iconTheme: const IconThemeData(color: Color(0xFF1DA1F2)),

@@ -6,6 +6,7 @@ import '../widgets/overview_cards.dart';
 import '../widgets/blood_sugar_chart.dart';
 import '../widgets/blood_pressure_chart.dart';
 import '../widgets/wound_photos_section.dart';
+import 'notifications_screen.dart';
 
 class HealthMetricsHistory extends StatefulWidget {
   final String patientId;
@@ -154,7 +155,14 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
           IconButton(
             icon: const Icon(Icons.notifications_none),
             onPressed: () {
-              // TODO: Implement notifications
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder:
+                      (context) =>
+                          NotificationsScreen(patientId: widget.patientId),
+                ),
+              );
             },
           ),
         ],

@@ -336,4 +336,42 @@ class SupabaseService {
       throw Exception('Failed to update profile picture: $e');
     }
   }
+
+  /// Fetch notifications for a specific user
+  Future<List<Map<String, dynamic>>> getNotifications(String userId) async {
+    try {
+      final response = await supabase
+          .from('notifications')
+          .select()
+          .eq('user_id', userId)
+          .order('created_at', ascending: false);
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      throw Exception('Failed to fetch notifications: $e');
+    }
+  }
+
+  /// Mark a notification as read
+  Future<void> markNotificationAsRead(String notificationId) async {
+    try {
+      await supabase
+          .from('notifications')
+          .update({'is_read': true})
+          .eq('notification_id', notificationId);
+    } catch (e) {
+      throw Exception('Failed to mark notification as read: $e');
+    }
+  }
+
+  /// Mark all notifications as read for a user
+  Future<void> markAllNotificationsAsRead(String userId) async {
+    try {
+      await supabase
+          .from('notifications')
+          .update({'is_read': true})
+          .eq('user_id', userId);
+    } catch (e) {
+      throw Exception('Failed to mark all notifications as read: $e');
+    }
+  }
 }

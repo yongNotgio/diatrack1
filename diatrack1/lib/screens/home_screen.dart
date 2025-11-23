@@ -7,6 +7,7 @@ import 'add_metrics_screen.dart';
 import 'login_screen.dart';
 import './medication.dart';
 import './health_metrics_history.dart';
+import './notifications_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final Map<String, dynamic> patientData;
@@ -161,7 +162,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 Icons.notifications_none,
                 color: Color(0xFF1DA1F2),
               ),
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (context) => NotificationsScreen(patientId: _patientId),
+                  ),
+                );
+              },
             ),
           ],
         ),
@@ -638,6 +647,17 @@ class _HomeScreenState extends State<HomeScreen> {
                               _menuIcon(
                                 'Reminders',
                                 'assets/images/reminder.png',
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder:
+                                          (context) => NotificationsScreen(
+                                            patientId: _patientId,
+                                          ),
+                                    ),
+                                  );
+                                },
                               ),
                             ],
                           ),

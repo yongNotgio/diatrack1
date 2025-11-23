@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:dotted_border/dotted_border.dart';
 import '../services/supabase_service.dart';
+import 'notifications_screen.dart';
 
 class AddMetricsScreen extends StatefulWidget {
   final String patientId;
@@ -181,7 +182,16 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
               Icons.notifications_none,
               color: Color(0xFF1DA1F2),
             ),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder:
+                      (context) =>
+                          NotificationsScreen(patientId: widget.patientId),
+                ),
+              );
+            },
           ),
         ],
         iconTheme: const IconThemeData(color: Color(0xFF1DA1F2)),
