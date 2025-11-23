@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:dotted_border/dotted_border.dart';
 import '../services/supabase_service.dart';
 import 'notifications_screen.dart';
+import 'risk_assessment_screen.dart';
 
 class AddMetricsScreen extends StatefulWidget {
   final String patientId;
@@ -140,6 +141,61 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
             backgroundColor: Colors.green,
           ),
         );
+
+        // Only assess risk for new metric submissions (not edits)
+        if (widget.existingMetric == null) {
+          try {
+            // Show loading indicator
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return const Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      Color(0xFF1DA1F2),
+                    ),
+                  ),
+                );
+              },
+            );
+
+            // Call risk assessment API
+            final riskData = await _supabaseService.assessSurgicalRisk(
+              patientId: widget.patientId,
+            );
+
+            // Close loading dialog
+            if (mounted) Navigator.pop(context);
+
+            // Navigate to risk assessment screen
+            if (mounted) {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder:
+                      (context) => RiskAssessmentScreen(riskData: riskData),
+                ),
+              );
+            }
+          } catch (e) {
+            // Close loading dialog
+            if (mounted) Navigator.pop(context);
+
+            // Show error but don't block navigation
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'Risk assessment unavailable: ${e.toString().replaceFirst('Exception: ', '')}',
+                  ),
+                  backgroundColor: Colors.orange,
+                ),
+              );
+            }
+          }
+        }
+
         Navigator.pop(context, true);
       }
     } catch (e) {

@@ -1,6 +1,8 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
 
 final supabase = Supabase.instance.client;
 
@@ -372,6 +374,144 @@ class SupabaseService {
           .eq('user_id', userId);
     } catch (e) {
       throw Exception('Failed to mark all notifications as read: $e');
+    }
+  }
+
+  /// Assess surgical risk for a patient
+  Future<Map<String, dynamic>> assessSurgicalRisk({
+    required String patientId,
+  }) async {
+    try {
+      // Fetch patient data to get age, comorbidities, and BMI
+      final patientResponse =
+          await supabase
+              .from('patients')
+              .select('date_of_birth, complication_history, BMI')
+              .eq('patient_id', patientId)
+              .single();
+
+      // Fetch latest health metrics for glucose and BP
+      final metricsResponse =
+          await supabase
+              .from('health_metrics')
+              .select('metric_id, blood_glucose, bp_systolic')
+              .eq('patient_id', patientId)
+              .order('submission_date', ascending: false)
+              .limit(1)
+              .single();
+
+      // Calculate age
+      final dateOfBirth = DateTime.parse(patientResponse['date_of_birth']);
+      final age = DateTime.now().difference(dateOfBirth).inDays ~/ 365;
+
+      // Get glucose in mmol/L (convert from mg/dL)
+      final glucoseMgDl = metricsResponse['blood_glucose'];
+      final glucoseMmol =
+          glucoseMgDl != null
+              ? (glucoseMgDl is num ? glucoseMgDl.toDouble() / 18 : null)
+              : null;
+
+      // Get systolic BP
+      final systolicBpRaw = metricsResponse['bp_systolic'];
+      final systolicBp = systolicBpRaw is num ? systolicBpRaw.toInt() : null;
+
+      // Get BMI from patients table
+      final bmiRaw = patientResponse['BMI'];
+      final bmi = bmiRaw is num ? bmiRaw.toDouble() : null;
+
+      // Count comorbidities
+      final complicationHistoryRaw = patientResponse['complication_history'];
+      final targetComorbidities = [
+        'Stroke',
+        'Hypertensive',
+        'Family Diabetes',
+        'Family Hypertension',
+        'Cardiovascular',
+      ];
+      int comorbiditiesCount = 0;
+
+      if (complicationHistoryRaw != null) {
+        List<dynamic> complicationHistory;
+
+        // Handle if it's a String (JSON) or already a List
+        if (complicationHistoryRaw is String) {
+          try {
+            complicationHistory =
+                json.decode(complicationHistoryRaw) as List<dynamic>;
+          } catch (e) {
+            complicationHistory = [];
+          }
+        } else if (complicationHistoryRaw is List) {
+          complicationHistory = complicationHistoryRaw;
+        } else {
+          complicationHistory = [];
+        }
+
+        for (var complication in complicationHistory) {
+          if (targetComorbidities.contains(complication)) {
+            comorbiditiesCount++;
+          }
+        }
+      }
+
+      // Prepare API request - ensure all values are proper types
+      final requestBody = {
+        'age': age,
+        'glucose': glucoseMmol?.toDouble() ?? 0.0,
+        'systolic_bp': systolicBp ?? 0,
+        'bmi': bmi ?? 0.0,
+        'comorbidities': comorbiditiesCount,
+      };
+
+      // Call the risk assessment API via ngrok
+      final apiResponse = await http.post(
+        Uri.parse(
+          'https://faultily-flighty-joellen.ngrok-free.dev/api/v1/assess-risk',
+        ),
+        headers: {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+        },
+        body: json.encode(requestBody),
+      );
+
+      if (apiResponse.statusCode == 200) {
+        final riskData = json.decode(apiResponse.body) as Map<String, dynamic>;
+
+        // Save risk classification to health_metrics table
+        final riskLevel = riskData['risk_category']?['level'] as String?;
+        if (riskLevel != null) {
+          try {
+            // Extract just the risk level without "Risk" text
+            String riskClassification;
+            if (riskLevel.toLowerCase().contains('high')) {
+              riskClassification = 'high';
+            } else if (riskLevel.toLowerCase().contains('moderate')) {
+              riskClassification = 'moderate';
+            } else if (riskLevel.toLowerCase().contains('low')) {
+              riskClassification = 'low';
+            } else {
+              riskClassification = 'moderate'; // default
+            }
+
+            await supabase
+                .from('health_metrics')
+                .update({'risk_classification': riskClassification})
+                .eq('metric_id', metricsResponse['metric_id']);
+          } catch (e) {
+            // Don't fail the entire request if saving fails
+            print('Failed to save risk classification: $e');
+          }
+        }
+
+        return riskData;
+      } else {
+        throw Exception(
+          'Risk assessment failed: ${apiResponse.statusCode} - ${apiResponse.body}',
+        );
+      }
+    } catch (e) {
+      throw Exception('Failed to assess surgical risk: $e');
     }
   }
 }
