@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../services/supabase_service.dart';
+import 'medication.dart';
+import 'health_metrics_history.dart';
 
 class NotificationsScreen extends StatefulWidget {
   final String patientId;
@@ -38,6 +40,40 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e'), backgroundColor: Colors.redAccent),
       );
+    }
+  }
+
+  void _navigateBasedOnType(String? type) {
+    if (type == null) return;
+
+    switch (type) {
+      case 'wound':
+        // Navigate to Health Metrics History (Wound Gallery)
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HealthMetricsHistory(patientId: widget.patientId),
+          ),
+        );
+        break;
+      case 'medication':
+        // Navigate to Medication Screen
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MedicationScreen(patientId: widget.patientId),
+          ),
+        );
+        break;
+      case 'appointment':
+      case 'patient':
+        // For appointments and patient notifications, go back to home
+        // The user likely came from HomeScreen
+        Navigator.pop(context);
+        break;
+      default:
+        // For unknown types, just mark as read without navigation
+        break;
     }
   }
 
@@ -263,9 +299,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
                     return GestureDetector(
                       onTap: () {
+                        // Mark as read if unread
                         if (!isRead) {
                           _markAsRead(notification['notification_id']);
                         }
+                        // Navigate based on notification type
+                        _navigateBasedOnType(type);
                       },
                       child: Container(
                         margin: const EdgeInsets.symmetric(
