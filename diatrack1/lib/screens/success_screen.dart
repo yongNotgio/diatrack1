@@ -10,52 +10,127 @@ class SuccessScreen extends StatelessWidget {
     final primaryBlue = const Color(0xFF1DA1F2);
 
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      body: Container(
+        width: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            stops: [0.0, 0.5, 1.0],
+            colors: [Color(0xFFE8F7FF), Color(0xFF7DD3FC), Color(0xFF1DA1F2)],
+          ),
+        ),
+        child: SafeArea(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset('assets/images/diatrack_logo.png', height: 60),
-              const SizedBox(height: 24),
-              Image.asset('assets/images/diatrack_doctor.png', height: 200),
-              const SizedBox(height: 24),
-              const Text(
-                'Welcome to DiaTrack!',
-                style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Your have successfully logged in.',
-                style: TextStyle(fontSize: 14, color: Colors.grey),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 30),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushReplacementNamed(
-                      context,
-                      '/dashboard',
-                      arguments: patientData,
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryBlue,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'Go to Dashboard',
-                    style: TextStyle(fontSize: 16),
+              // Top Logo - Centered
+              Padding(
+                padding: const EdgeInsets.only(top: 24),
+                child: Center(
+                  child: Image.asset(
+                    'assets/images/diatrack_logo.png',
+                    height: 40,
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Text(
+                        'DiaTrack',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          fontFamily: 'Poppins',
+                        ),
+                      );
+                    },
                   ),
                 ),
               ),
+              const SizedBox(height: 4),
+              // Doctor Image - Larger
+              Expanded(
+                flex: 10,
+                child: Image.asset(
+                  'assets/images/welcome.png',
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Image.asset(
+                      'assets/images/diatrack_doctor.png',
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Icon(
+                            Icons.person,
+                            size: 150,
+                            color: Colors.white,
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Welcome Text
+              const Text(
+                'Welcome to\nDiaTrack!',
+                style: TextStyle(
+                  fontSize: 34,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  fontFamily: 'Poppins',
+                  height: 1.2,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Your account has been\ncompletely setup by your\nattending physician.',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.white.withOpacity(0.85),
+                  fontFamily: 'Poppins',
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const Spacer(flex: 2),
+              // Go to Dashboard Button
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushReplacementNamed(
+                        context,
+                        '/dashboard',
+                        arguments: patientData,
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryBlue,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: const Text(
+                      'Go to Dashboard',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        fontFamily: 'Poppins',
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 50),
             ],
           ),
         ),
