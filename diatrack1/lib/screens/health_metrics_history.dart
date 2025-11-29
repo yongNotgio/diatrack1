@@ -1574,6 +1574,24 @@ class _TablesScreenState extends State<_TablesScreen> {
                   ),
                 ),
               ),
+              Expanded(
+                flex: 1,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                  child: const Text(
+                    'Risk Score',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Poppins',
+                      fontSize: 11,
+                      color: Color(0xFF1B6CA4),
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
         );
@@ -1866,6 +1884,28 @@ class _TablesScreenState extends State<_TablesScreen> {
                   ),
                   child: Text(
                     (metric.riskClassification ?? 'UNKNOWN').toUpperCase(),
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: getRiskColor(
+                        metric.riskClassification ?? 'UNKNOWN',
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                flex: 1,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                  child: Text(
+                    metric.riskScore != null
+                        ? '${metric.riskScore!.toStringAsFixed(1)}%'
+                        : '--',
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 11,

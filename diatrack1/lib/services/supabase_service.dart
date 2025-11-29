@@ -494,9 +494,19 @@ class SupabaseService {
               riskClassification = 'moderate'; // default
             }
 
+            // Get the risk score from the response
+            final riskScoreValue = riskData['risk_score'];
+            double? riskScoreDouble;
+            if (riskScoreValue is num) {
+              riskScoreDouble = riskScoreValue.toDouble();
+            }
+
             await supabase
                 .from('health_metrics')
-                .update({'risk_classification': riskClassification})
+                .update({
+                  'risk_classification': riskClassification,
+                  'risk_score': riskScoreDouble,
+                })
                 .eq('metric_id', metricsResponse['metric_id']);
           } catch (e) {
             // Don't fail the entire request if saving fails

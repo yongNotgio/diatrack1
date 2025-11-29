@@ -9,6 +9,7 @@ class HealthMetric {
   final String? foodPhotoUrl;
   final String? notes;
   final String? riskClassification;
+  final double? riskScore;
   final String? bpClassification;
   final DateTime submissionDate;
   final DateTime updatedAt;
@@ -32,6 +33,7 @@ class HealthMetric {
     this.foodPhotoUrl,
     this.notes,
     this.riskClassification,
+    this.riskScore,
     required this.submissionDate,
     required this.updatedAt,
     this.bpClassification,
@@ -55,6 +57,7 @@ class HealthMetric {
       foodPhotoUrl: map['food_photo_url'],
       notes: map['notes'],
       riskClassification: map['risk_classification'],
+      riskScore: map['risk_score']?.toDouble(),
       submissionDate: DateTime.parse(map['submission_date']),
       updatedAt: DateTime.parse(map['updated_at']),
       bpClassification: map['bp_classification'],
@@ -91,6 +94,7 @@ class HealthMetric {
       'food_photo_url': foodPhotoUrl,
       'notes': notes,
       'risk_classification': riskClassification,
+      'risk_score': riskScore,
       'submission_date': submissionDate.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };
