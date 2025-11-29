@@ -216,8 +216,8 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
           const Text(
             'Visualizations',
             style: TextStyle(
-              fontWeight: FontWeight.w700,
-              fontSize: 18,
+              fontWeight: FontWeight.w500,
+              fontSize: 25,
               color: Color(0xFF0D629E),
               fontFamily: 'Poppins',
             ),
@@ -230,8 +230,8 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
           const Text(
             'Wound Photos',
             style: TextStyle(
-              fontWeight: FontWeight.w700,
-              fontSize: 18,
+              fontWeight: FontWeight.w500,
+              fontSize: 25,
               color: Color(0xFF0D629E),
               fontFamily: 'Poppins',
             ),
@@ -243,10 +243,10 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                'Health Metrics Submissions',
+                'Health Metrics\nSubmissions',
                 style: TextStyle(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 25,
                   color: Color(0xFF0D629E),
                   fontFamily: 'Poppins',
                 ),
@@ -455,16 +455,21 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
                         ),
                       ),
                       const SizedBox(height: 4),
-                      Text(
-                        (metric.riskClassification ?? 'UNKNOWN').toUpperCase(),
-                        style: TextStyle(
-                          fontSize: 48,
-                          fontWeight: FontWeight.w500,
-                          color: getRiskColor(
-                            metric.riskClassification ?? 'UNKNOWN',
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          (metric.riskClassification ?? 'UNKNOWN')
+                              .toUpperCase(),
+                          style: TextStyle(
+                            fontSize: 48,
+                            fontWeight: FontWeight.w500,
+                            color: getRiskColor(
+                              metric.riskClassification ?? 'UNKNOWN',
+                            ),
+                            fontFamily: 'Poppins',
+                            height: 1.0,
                           ),
-                          fontFamily: 'Poppins',
-                          height: 1.0,
                         ),
                       ),
                     ],

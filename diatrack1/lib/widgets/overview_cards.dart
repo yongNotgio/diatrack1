@@ -132,14 +132,18 @@ class _OverviewCard extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: 52,
-                    fontWeight: FontWeight.w700,
-                    color: color,
-                    fontFamily: 'Poppins',
-                    height: 0.95,
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    value,
+                    style: TextStyle(
+                      fontSize: 52,
+                      fontWeight: FontWeight.w700,
+                      color: color,
+                      fontFamily: 'Poppins',
+                      height: 0.95,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 2),

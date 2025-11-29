@@ -52,7 +52,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => HealthMetricsHistory(patientId: widget.patientId),
+            builder:
+                (context) => HealthMetricsHistory(patientId: widget.patientId),
           ),
         );
         break;

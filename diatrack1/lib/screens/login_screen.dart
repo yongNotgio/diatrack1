@@ -84,48 +84,79 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final primaryBlue = const Color(0xFF1DA1F2);
+    final darkBlue = const Color(0xFF0D629E);
 
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: Center(
+      backgroundColor: const Color(0xFFF8FAFF),
+      body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                const Text(
-                  'Sign In to Your\nDiaTrack Account',
+                const SizedBox(height: 20),
+                Text(
+                  'Login to Your\nDiaTrack Account',
                   style: TextStyle(
-                    fontSize: 26,
+                    fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF1DA1F2),
+                    color: darkBlue,
+                    fontFamily: 'Poppins',
+                    height: 1.2,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
                 const Text(
                   'Enter your details to proceed further',
-                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey,
+                    fontFamily: 'Poppins',
+                  ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 30),
+                const SizedBox(height: 40),
 
-                const Text(
-                  'Username or Email',
-                  style: TextStyle(fontWeight: FontWeight.w500),
+                Text(
+                  'Email',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: darkBlue,
+                    fontFamily: 'Poppins',
+                    fontSize: 14,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _emailController,
+                  style: const TextStyle(fontFamily: 'Poppins'),
                   decoration: InputDecoration(
-                    hintText: 'Enter your username or email',
+                    hintText: 'Enter your email',
+                    hintStyle: TextStyle(
+                      color: Colors.grey[400],
+                      fontFamily: 'Poppins',
+                      fontSize: 14,
+                    ),
                     filled: true,
-                    fillColor: Colors.grey[200],
+                    fillColor: Colors.white,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
+                      borderSide: BorderSide(color: Colors.grey[300]!),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.grey[300]!),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: primaryBlue, width: 1.5),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
                     ),
                   ),
                   validator:
@@ -136,22 +167,45 @@ class _LoginScreenState extends State<LoginScreen> {
                               ? 'Please enter a valid email'
                               : null,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
 
-                const Text(
+                Text(
                   'Password',
-                  style: TextStyle(fontWeight: FontWeight.w500),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: darkBlue,
+                    fontFamily: 'Poppins',
+                    fontSize: 14,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _passwordController,
+                  style: const TextStyle(fontFamily: 'Poppins'),
                   decoration: InputDecoration(
                     hintText: 'Enter your password',
+                    hintStyle: TextStyle(
+                      color: Colors.grey[400],
+                      fontFamily: 'Poppins',
+                      fontSize: 14,
+                    ),
                     filled: true,
-                    fillColor: Colors.grey[200],
+                    fillColor: Colors.white,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
+                      borderSide: BorderSide(color: Colors.grey[300]!),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.grey[300]!),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: primaryBlue, width: 1.5),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
                     ),
                   ),
                   obscureText: true,
@@ -161,29 +215,99 @@ class _LoginScreenState extends State<LoginScreen> {
                               ? 'Please enter your password'
                               : null,
                 ),
+                const SizedBox(height: 12),
+
+                // Forgot password text
+                RichText(
+                  text: TextSpan(
+                    style: const TextStyle(fontSize: 12, fontFamily: 'Poppins'),
+                    children: [
+                      TextSpan(
+                        text: 'Forgot password? ',
+                        style: TextStyle(
+                          color: primaryBlue,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      TextSpan(
+                        text:
+                            'Please contact your clinic\nsecretary for assistance.',
+                        style: TextStyle(color: Colors.grey[600]),
+                      ),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 16),
 
-                CheckboxListTile(
-                  title: const Text(
-                    'I declare that I am at least 18 years old and agree to the Privacy Policy.',
-                    style: TextStyle(fontSize: 12),
-                  ),
-                  value: _is18AndAgree,
-                  onChanged:
-                      (value) => setState(() => _is18AndAgree = value ?? false),
-                  activeColor: primaryBlue,
-                  contentPadding: EdgeInsets.zero,
+                // Checkbox row
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: Checkbox(
+                        value: _is18AndAgree,
+                        onChanged:
+                            (value) =>
+                                setState(() => _is18AndAgree = value ?? false),
+                        activeColor: primaryBlue,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        side: BorderSide(color: Colors.grey[400]!),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: RichText(
+                        text: TextSpan(
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[700],
+                            fontFamily: 'Poppins',
+                          ),
+                          children: [
+                            const TextSpan(
+                              text:
+                                  'I declare that I am at least 18 years old\nand ',
+                            ),
+                            TextSpan(
+                              text: 'agree',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: darkBlue,
+                              ),
+                            ),
+                            const TextSpan(text: ' to the '),
+                            TextSpan(
+                              text: 'Privacy Policy.',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: darkBlue,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
 
                 if (_errorMessage != null)
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 12.0),
+                    padding: const EdgeInsets.only(top: 16.0),
                     child: Text(
                       _errorMessage!,
-                      style: const TextStyle(color: Colors.red),
+                      style: const TextStyle(
+                        color: Colors.red,
+                        fontFamily: 'Poppins',
+                      ),
                       textAlign: TextAlign.center,
                     ),
                   ),
+
+                const SizedBox(height: 32),
 
                 _isLoading
                     ? const Center(child: CircularProgressIndicator())
@@ -191,13 +315,22 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: _is18AndAgree ? _login : null,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: primaryBlue,
+                        disabledBackgroundColor: primaryBlue.withOpacity(0.5),
+                        foregroundColor: Colors.white,
+                        disabledForegroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
+                        elevation: 0,
                       ),
                       child: const Text(
                         'Login',
-                        style: TextStyle(fontSize: 16),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          fontFamily: 'Poppins',
+                        ),
                       ),
                     ),
               ],
