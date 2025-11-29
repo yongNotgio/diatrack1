@@ -186,7 +186,9 @@ class _AppointmentDialogState extends State<AppointmentDialog> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        DateFormat('MMMM d, yyyy').format(widget.currentDateTime),
+                        DateFormat(
+                          'MMMM d, yyyy',
+                        ).format(widget.currentDateTime),
                         style: const TextStyle(
                           fontFamily: 'Poppins',
                           fontSize: 16,
@@ -229,7 +231,9 @@ class _AppointmentDialogState extends State<AppointmentDialog> {
                 decoration: BoxDecoration(
                   color: const Color(0xFFE8F5E9),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFF4CAF50).withOpacity(0.3)),
+                  border: Border.all(
+                    color: const Color(0xFF4CAF50).withOpacity(0.3),
+                  ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -257,7 +261,9 @@ class _AppointmentDialogState extends State<AppointmentDialog> {
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: const Color(0xFFE0E0E0)),
+                                border: Border.all(
+                                  color: const Color(0xFFE0E0E0),
+                                ),
                               ),
                               child: Row(
                                 children: [
@@ -270,7 +276,9 @@ class _AppointmentDialogState extends State<AppointmentDialog> {
                                   Expanded(
                                     child: Text(
                                       _selectedDate != null
-                                          ? DateFormat('MMM d, yy').format(_selectedDate!)
+                                          ? DateFormat(
+                                            'MMM d, yy',
+                                          ).format(_selectedDate!)
                                           : 'Date',
                                       style: const TextStyle(
                                         fontFamily: 'Poppins',
@@ -297,7 +305,9 @@ class _AppointmentDialogState extends State<AppointmentDialog> {
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: const Color(0xFFE0E0E0)),
+                                border: Border.all(
+                                  color: const Color(0xFFE0E0E0),
+                                ),
                               ),
                               child: Row(
                                 children: [
@@ -339,7 +349,9 @@ class _AppointmentDialogState extends State<AppointmentDialog> {
                         setState(() {
                           _isRescheduling = false;
                           _selectedDate = widget.currentDateTime;
-                          _selectedTime = TimeOfDay.fromDateTime(widget.currentDateTime);
+                          _selectedTime = TimeOfDay.fromDateTime(
+                            widget.currentDateTime,
+                          );
                         });
                       },
                       style: OutlinedButton.styleFrom(
@@ -488,66 +500,73 @@ class _AppointmentDialogState extends State<AppointmentDialog> {
   void _showCancelConfirmation(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
-          children: [
-            Icon(Icons.warning_amber_rounded, color: Color(0xFFEF5350), size: 28),
-            SizedBox(width: 8),
-            Text(
-              'Cancel Appointment?',
-              style: TextStyle(
-                fontFamily: 'Poppins',
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF0D629E),
-              ),
+      builder:
+          (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
             ),
-          ],
-        ),
-        content: const Text(
-          'Are you sure you want to cancel this appointment? The secretary will be notified.',
-          style: TextStyle(
-            fontFamily: 'Poppins',
-            fontSize: 14,
-            color: Colors.grey,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'No, Keep It',
+            title: const Row(
+              children: [
+                Icon(
+                  Icons.warning_amber_rounded,
+                  color: Color(0xFFEF5350),
+                  size: 28,
+                ),
+                SizedBox(width: 8),
+                Text(
+                  'Cancel Appointment?',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF0D629E),
+                  ),
+                ),
+              ],
+            ),
+            content: const Text(
+              'Are you sure you want to cancel this appointment? The secretary will be notified.',
               style: TextStyle(
                 fontFamily: 'Poppins',
+                fontSize: 14,
                 color: Colors.grey,
-                fontWeight: FontWeight.w600,
               ),
             ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text(
+                  'No, Keep It',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    color: Colors.grey,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context); // Close confirmation dialog
+                  Navigator.pop(context); // Close main dialog
+                  widget.onCancel();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFEF5350),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text(
+                  'Yes, Cancel',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context); // Close confirmation dialog
-              Navigator.pop(context); // Close main dialog
-              widget.onCancel();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFEF5350),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: const Text(
-              'Yes, Cancel',
-              style: TextStyle(
-                fontFamily: 'Poppins',
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

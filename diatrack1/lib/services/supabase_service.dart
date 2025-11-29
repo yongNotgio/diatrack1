@@ -377,8 +377,24 @@ class SupabaseService {
     }
   }
 
+  /// Get unread notification count for a user
+  Future<int> getUnreadNotificationCount(String userId) async {
+    try {
+      final response = await supabase
+          .from('notifications')
+          .select('notification_id')
+          .eq('user_id', userId)
+          .eq('is_read', false);
+      return (response as List).length;
+    } catch (e) {
+      return 0;
+    }
+  }
+
   /// Get upcoming appointment with full details including secretary
-  Future<Map<String, dynamic>?> getUpcomingAppointmentWithDetails(String patientId) async {
+  Future<Map<String, dynamic>?> getUpcomingAppointmentWithDetails(
+    String patientId,
+  ) async {
     final response =
         await supabase
             .from('appointments')
@@ -404,6 +420,126 @@ class SupabaseService {
     return response;
   }
 
+  /// Check if a time slot is available for a doctor
+  /// Returns true if the slot is available, false if it's taken
+  Future<bool> isTimeSlotAvailable({
+    required String doctorId,
+    required DateTime dateTime,
+    String? excludeAppointmentId,
+  }) async {
+    try {
+      // Check for appointments within 1 hour of the requested time
+      final startTime = dateTime.subtract(const Duration(hours: 1));
+      final endTime = dateTime.add(const Duration(hours: 1));
+
+      var query = supabase
+          .from('appointments')
+          .select('appointment_id')
+          .eq('doctor_id', doctorId)
+          .neq('appointment_state', 'cancelled')
+          .gte('appointment_datetime', startTime.toIso8601String())
+          .lte('appointment_datetime', endTime.toIso8601String());
+
+      // Exclude current appointment if rescheduling
+      if (excludeAppointmentId != null) {
+        query = query.neq('appointment_id', excludeAppointmentId);
+      }
+
+      final response = await query;
+      return response.isEmpty;
+    } catch (e) {
+      throw Exception('Failed to check time slot availability: $e');
+    }
+  }
+
+  /// Create a new appointment
+  Future<void> createAppointment({
+    required String patientId,
+    required String patientName,
+    required String doctorId,
+    required DateTime appointmentDateTime,
+    String? secretaryId,
+    String? notes,
+  }) async {
+    try {
+      // First check if the time slot is available
+      final isAvailable = await isTimeSlotAvailable(
+        doctorId: doctorId,
+        dateTime: appointmentDateTime,
+      );
+
+      if (!isAvailable) {
+        throw Exception(
+          'This time slot is already taken. Please choose a different time.',
+        );
+      }
+
+      // Get secretary linked to this doctor if not provided
+      String? effectiveSecretaryId = secretaryId;
+      if (effectiveSecretaryId == null) {
+        final secretaryLink =
+            await supabase
+                .from('secretary_doctor_links')
+                .select('secretary_id')
+                .eq('doctor_id', doctorId)
+                .limit(1)
+                .maybeSingle();
+
+        if (secretaryLink != null) {
+          effectiveSecretaryId = secretaryLink['secretary_id']?.toString();
+        }
+      }
+
+      // Create the appointment
+      final response =
+          await supabase
+              .from('appointments')
+              .insert({
+                'patient_id': patientId,
+                'doctor_id': doctorId,
+                'secretary_id': effectiveSecretaryId,
+                'appointment_datetime': appointmentDateTime.toIso8601String(),
+                'date_set': DateTime.now().toIso8601String(),
+                'appointment_state': 'scheduled',
+                'notes': notes,
+              })
+              .select('appointment_id')
+              .single();
+
+      final appointmentId = response['appointment_id'];
+
+      // Notify secretary if available
+      if (effectiveSecretaryId != null) {
+        await supabase.from('notifications').insert({
+          'user_id': effectiveSecretaryId,
+          'user_role': 'secretary',
+          'title': 'New Appointment Scheduled',
+          'message':
+              '$patientName has scheduled an appointment for ${_formatDateTimeForNotification(appointmentDateTime)}.',
+          'type': 'appointment',
+          'reference_id': appointmentId,
+          'is_read': false,
+        });
+      }
+
+      // Log the creation in audit_logs
+      await supabase.from('audit_logs').insert({
+        'actor_type': 'patient',
+        'actor_id': patientId,
+        'actor_name': patientName,
+        'module': 'appointments',
+        'action_type': 'schedule',
+        'new_value': appointmentDateTime.toIso8601String(),
+        'source_page': 'home_screen',
+      });
+    } catch (e) {
+      if (e.toString().contains('already taken')) {
+        rethrow;
+      }
+      throw Exception('Failed to create appointment: $e');
+    }
+  }
+
   /// Cancel an appointment and notify secretary
   Future<void> cancelAppointment({
     required String appointmentId,
@@ -425,7 +561,8 @@ class SupabaseService {
           'user_id': secretaryId,
           'user_role': 'secretary',
           'title': 'Appointment Cancelled',
-          'message': '$patientName has cancelled their appointment scheduled for $originalDateTime.',
+          'message':
+              '$patientName has cancelled their appointment scheduled for $originalDateTime.',
           'type': 'appointment',
           'reference_id': appointmentId,
           'is_read': false,
@@ -454,10 +591,24 @@ class SupabaseService {
     required String patientId,
     required String patientName,
     required DateTime newDateTime,
+    required String doctorId,
     String? secretaryId,
     String? originalDateTime,
   }) async {
     try {
+      // First check if the new time slot is available
+      final isAvailable = await isTimeSlotAvailable(
+        doctorId: doctorId,
+        dateTime: newDateTime,
+        excludeAppointmentId: appointmentId,
+      );
+
+      if (!isAvailable) {
+        throw Exception(
+          'This time slot is already taken. Please choose a different time.',
+        );
+      }
+
       // Update appointment with new datetime
       await supabase
           .from('appointments')
@@ -473,7 +624,8 @@ class SupabaseService {
           'user_id': secretaryId,
           'user_role': 'secretary',
           'title': 'Appointment Rescheduled',
-          'message': '$patientName has rescheduled their appointment from $originalDateTime to ${_formatDateTimeForNotification(newDateTime)}.',
+          'message':
+              '$patientName has rescheduled their appointment from $originalDateTime to ${_formatDateTimeForNotification(newDateTime)}.',
           'type': 'appointment',
           'reference_id': appointmentId,
           'is_read': false,
@@ -492,12 +644,28 @@ class SupabaseService {
         'source_page': 'home_screen',
       });
     } catch (e) {
+      if (e.toString().contains('already taken')) {
+        rethrow;
+      }
       throw Exception('Failed to reschedule appointment: $e');
     }
   }
 
   String _formatDateTimeForNotification(DateTime dt) {
-    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
     final hour = dt.hour > 12 ? dt.hour - 12 : (dt.hour == 0 ? 12 : dt.hour);
     final amPm = dt.hour >= 12 ? 'PM' : 'AM';
     return '${months[dt.month - 1]} ${dt.day}, ${dt.year} at $hour:${dt.minute.toString().padLeft(2, '0')} $amPm';
