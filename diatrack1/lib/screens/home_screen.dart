@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker/image_picker.dart';
 import '../services/supabase_service.dart';
+import '../widgets/appointment_dialog.dart';
 import 'add_metrics_screen.dart';
 import 'login_screen.dart';
 import './medication.dart';
@@ -49,8 +50,124 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _loadAppointment() {
     setState(() {
-      _appointmentFuture = _supabaseService.getUpcomingAppointment(_patientId);
+      _appointmentFuture = _supabaseService.getUpcomingAppointmentWithDetails(_patientId);
     });
+  }
+
+  String _getPatientFullName() {
+    return "${widget.patientData['first_name'] ?? ''} ${widget.patientData['last_name'] ?? ''}";
+  }
+
+  void _showAppointmentDialog(Map<String, dynamic> appointment) {
+    final appointmentId = appointment['appointment_id']?.toString();
+    if (appointmentId == null || appointment['appointment_datetime'] == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Unable to load appointment details.'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+    
+    final appointmentDateTime = DateTime.parse(appointment['appointment_datetime']);
+    final doctor = appointment['doctor'];
+    final secretary = appointment['secretary'];
+    
+    String doctorName = 'Unknown';
+    if (doctor != null) {
+      doctorName = '${doctor['first_name'] ?? ''} ${doctor['last_name'] ?? ''}'.trim();
+    }
+    
+    String? secretaryId;
+    if (secretary != null && secretary['secretary_id'] != null) {
+      secretaryId = secretary['secretary_id']?.toString();
+    }
+
+    final originalDateTimeStr = DateFormat('MMM d, yyyy \'at\' h:mm a').format(appointmentDateTime);
+
+    showDialog(
+      context: context,
+      builder: (context) => AppointmentDialog(
+        appointmentId: appointmentId,
+        currentDateTime: appointmentDateTime,
+        doctorName: doctorName,
+        onCancel: () async {
+          try {
+            await _supabaseService.cancelAppointment(
+              appointmentId: appointmentId,
+              patientId: _patientId,
+              patientName: _getPatientFullName(),
+              secretaryId: secretaryId,
+              originalDateTime: originalDateTimeStr,
+            );
+            _loadAppointment();
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'Appointment cancelled successfully. The secretary has been notified.',
+                    style: TextStyle(fontFamily: 'Poppins'),
+                  ),
+                  backgroundColor: Color(0xFF4CAF50),
+                  duration: Duration(seconds: 3),
+                ),
+              );
+            }
+          } catch (e) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'Failed to cancel appointment: $e',
+                    style: const TextStyle(fontFamily: 'Poppins'),
+                  ),
+                  backgroundColor: Colors.redAccent,
+                ),
+              );
+            }
+          }
+        },
+        onReschedule: (newDateTime) async {
+          try {
+            Navigator.pop(context); // Close dialog
+            await _supabaseService.rescheduleAppointment(
+              appointmentId: appointmentId,
+              patientId: _patientId,
+              patientName: _getPatientFullName(),
+              newDateTime: newDateTime,
+              secretaryId: secretaryId,
+              originalDateTime: originalDateTimeStr,
+            );
+            _loadAppointment();
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'Appointment rescheduled to ${DateFormat('MMM d, yyyy \'at\' h:mm a').format(newDateTime)}. The secretary has been notified.',
+                    style: const TextStyle(fontFamily: 'Poppins'),
+                  ),
+                  backgroundColor: const Color(0xFF4CAF50),
+                  duration: const Duration(seconds: 3),
+                ),
+              );
+            }
+          } catch (e) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'Failed to reschedule appointment: $e',
+                    style: const TextStyle(fontFamily: 'Poppins'),
+                  ),
+                  backgroundColor: Colors.redAccent,
+                ),
+              );
+            }
+          }
+        },
+      ),
+    );
   }
 
   void _logout() async {
@@ -308,6 +425,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         String nextCheckupTime = '';
                         String doctorLastName = '';
                         String doctorFirstName = '';
+                        bool hasAppointment = false;
+                        Map<String, dynamic>? appointmentData;
 
                         // Parse doctor name to split into first and last name
                         String fullDoctorName =
@@ -326,6 +445,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           nextCheckup = 'Loading...';
                         } else if (snapshot.hasData && snapshot.data != null) {
                           final appt = snapshot.data!;
+                          appointmentData = appt;
                           if (appt['appointment_datetime'] != null) {
                             final dt = DateTime.parse(
                               appt['appointment_datetime'],
@@ -336,6 +456,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ).format(dt).toUpperCase();
                             nextCheckupTime =
                                 DateFormat('h a').format(dt).toUpperCase();
+                            hasAppointment = true;
                           }
                         }
 
@@ -414,32 +535,41 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   ),
                                                 ),
                                                 const SizedBox(height: 4),
-                                                Container(
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        horizontal: 12,
-                                                        vertical: 8,
-                                                      ),
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.white
-                                                        .withOpacity(0.95),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          12,
+                                                GestureDetector(
+                                                  onTap: hasAppointment && appointmentData != null
+                                                      ? () => _showAppointmentDialog(appointmentData!)
+                                                      : null,
+                                                  child: Container(
+                                                    padding:
+                                                        const EdgeInsets.symmetric(
+                                                          horizontal: 12,
+                                                          vertical: 8,
                                                         ),
-                                                  ),
-                                                  child: Text(
-                                                    nextCheckup,
-                                                    style: const TextStyle(
-                                                      fontFamily: 'Poppins',
-                                                      color: Color(0xFFFFB300),
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      fontSize: 13,
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.white
+                                                          .withOpacity(0.95),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            12,
+                                                          ),
+                                                      border: hasAppointment
+                                                          ? Border.all(
+                                                              color: Colors.white,
+                                                              width: 2,
+                                                            )
+                                                          : null,
                                                     ),
-                                                    maxLines: 1,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
+                                                    child: Text(
+                                                      nextCheckup,
+                                                      style: const TextStyle(
+                                                        fontFamily: 'Poppins',
+                                                        color: Color(0xFFFFB300),
+                                                        fontWeight: FontWeight.bold,
+                                                        fontSize: 12,
+                                                      ),
+                                                      maxLines: 1,
+                                                      overflow: TextOverflow.ellipsis,
+                                                    ),
                                                   ),
                                                 ),
                                               ],
@@ -460,27 +590,38 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 ),
                                               ),
                                               const SizedBox(height: 4),
-                                              Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      horizontal: 16,
-                                                      vertical: 8,
+                                              GestureDetector(
+                                                onTap: hasAppointment && appointmentData != null
+                                                    ? () => _showAppointmentDialog(appointmentData!)
+                                                    : null,
+                                                child: Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 16,
+                                                        vertical: 8,
+                                                      ),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white
+                                                        .withOpacity(0.95),
+                                                    borderRadius:
+                                                        BorderRadius.circular(12),
+                                                    border: hasAppointment
+                                                        ? Border.all(
+                                                            color: Colors.white,
+                                                            width: 2,
+                                                          )
+                                                        : null,
+                                                  ),
+                                                  child: Text(
+                                                    nextCheckupTime.isNotEmpty
+                                                        ? nextCheckupTime
+                                                        : '-',
+                                                    style: const TextStyle(
+                                                      fontFamily: 'Poppins',
+                                                      color: Color(0xFFFFB300),
+                                                      fontWeight: FontWeight.bold,
+                                                      fontSize: 13,
                                                     ),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.white
-                                                      .withOpacity(0.95),
-                                                  borderRadius:
-                                                      BorderRadius.circular(12),
-                                                ),
-                                                child: Text(
-                                                  nextCheckupTime.isNotEmpty
-                                                      ? nextCheckupTime
-                                                      : '-',
-                                                  style: const TextStyle(
-                                                    fontFamily: 'Poppins',
-                                                    color: Color(0xFFFFB300),
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 13,
                                                   ),
                                                 ),
                                               ),

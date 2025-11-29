@@ -377,6 +377,132 @@ class SupabaseService {
     }
   }
 
+  /// Get upcoming appointment with full details including secretary
+  Future<Map<String, dynamic>?> getUpcomingAppointmentWithDetails(String patientId) async {
+    final response =
+        await supabase
+            .from('appointments')
+            .select('''
+              appointment_id,
+              appointment_datetime,
+              notes,
+              appointment_state,
+              doctor:doctor_id(doctor_id, first_name, last_name),
+              secretary:secretary_id(secretary_id, first_name, last_name)
+            ''')
+            .eq('patient_id', patientId)
+            .gte('appointment_datetime', DateTime.now().toIso8601String())
+            .neq('appointment_state', 'cancelled')
+            .order('appointment_datetime', ascending: true)
+            .limit(1)
+            .maybeSingle();
+
+    if (response == null || response.isEmpty) {
+      return null;
+    }
+
+    return response;
+  }
+
+  /// Cancel an appointment and notify secretary
+  Future<void> cancelAppointment({
+    required String appointmentId,
+    required String patientId,
+    required String patientName,
+    String? secretaryId,
+    String? originalDateTime,
+  }) async {
+    try {
+      // Update appointment state to cancelled
+      await supabase
+          .from('appointments')
+          .update({'appointment_state': 'cancelled'})
+          .eq('appointment_id', appointmentId);
+
+      // Create notification for secretary if secretary_id is available
+      if (secretaryId != null) {
+        await supabase.from('notifications').insert({
+          'user_id': secretaryId,
+          'user_role': 'secretary',
+          'title': 'Appointment Cancelled',
+          'message': '$patientName has cancelled their appointment scheduled for $originalDateTime.',
+          'type': 'appointment',
+          'reference_id': appointmentId,
+          'is_read': false,
+        });
+      }
+
+      // Log the cancellation in audit_logs
+      await supabase.from('audit_logs').insert({
+        'actor_type': 'patient',
+        'actor_id': patientId,
+        'actor_name': patientName,
+        'module': 'appointments',
+        'action_type': 'cancel',
+        'old_value': originalDateTime,
+        'new_value': 'cancelled',
+        'source_page': 'home_screen',
+      });
+    } catch (e) {
+      throw Exception('Failed to cancel appointment: $e');
+    }
+  }
+
+  /// Reschedule an appointment and notify secretary
+  Future<void> rescheduleAppointment({
+    required String appointmentId,
+    required String patientId,
+    required String patientName,
+    required DateTime newDateTime,
+    String? secretaryId,
+    String? originalDateTime,
+  }) async {
+    try {
+      // Update appointment with new datetime
+      await supabase
+          .from('appointments')
+          .update({
+            'appointment_datetime': newDateTime.toIso8601String(),
+            'appointment_state': 'rescheduled',
+          })
+          .eq('appointment_id', appointmentId);
+
+      // Create notification for secretary if secretary_id is available
+      if (secretaryId != null) {
+        await supabase.from('notifications').insert({
+          'user_id': secretaryId,
+          'user_role': 'secretary',
+          'title': 'Appointment Rescheduled',
+          'message': '$patientName has rescheduled their appointment from $originalDateTime to ${_formatDateTimeForNotification(newDateTime)}.',
+          'type': 'appointment',
+          'reference_id': appointmentId,
+          'is_read': false,
+        });
+      }
+
+      // Log the reschedule in audit_logs
+      await supabase.from('audit_logs').insert({
+        'actor_type': 'patient',
+        'actor_id': patientId,
+        'actor_name': patientName,
+        'module': 'appointments',
+        'action_type': 'reschedule',
+        'old_value': originalDateTime,
+        'new_value': newDateTime.toIso8601String(),
+        'source_page': 'home_screen',
+      });
+    } catch (e) {
+      throw Exception('Failed to reschedule appointment: $e');
+    }
+  }
+
+  String _formatDateTimeForNotification(DateTime dt) {
+    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final hour = dt.hour > 12 ? dt.hour - 12 : (dt.hour == 0 ? 12 : dt.hour);
+    final amPm = dt.hour >= 12 ? 'PM' : 'AM';
+    return '${months[dt.month - 1]} ${dt.day}, ${dt.year} at $hour:${dt.minute.toString().padLeft(2, '0')} $amPm';
+  }
+
   /// Assess surgical risk for a patient
   Future<Map<String, dynamic>> assessSurgicalRisk({
     required String patientId,
