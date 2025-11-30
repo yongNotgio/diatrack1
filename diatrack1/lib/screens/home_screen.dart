@@ -753,7 +753,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   child: Container(
                                                     padding:
                                                         const EdgeInsets.symmetric(
-                                                          horizontal: 12,
+                                                          horizontal: 16,
                                                           vertical: 8,
                                                         ),
                                                     decoration: BoxDecoration(
@@ -778,7 +778,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                             color: Color(
                                                               0xFFFFB300,
                                                             ),
-                                                            size: 12,
+                                                            size: 14,
                                                           ),
                                                         Flexible(
                                                           child: Text(
@@ -795,7 +795,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                                   fontWeight:
                                                                       FontWeight
                                                                           .bold,
-                                                                  fontSize: 10,
+                                                                  fontSize: 13,
                                                                 ),
                                                             maxLines: 1,
                                                             overflow:
@@ -1701,7 +1701,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (status.toUpperCase() == 'LOW') {
       riskColor = const Color(0xFF4CAF50);
       riskIcon = 'assets/images/low_risk.png';
-    } else if (status.toUpperCase() == 'MEDIUM') {
+    } else if (status.toUpperCase() == 'MODERATE') {
       riskColor = const Color(0xFFFFA726);
       riskIcon = 'assets/images/medium_risk.png';
     } else {

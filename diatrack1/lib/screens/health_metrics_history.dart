@@ -284,7 +284,7 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
           return const Color(0xFF19AC4A); // Green
         case 'HIGH':
           return const Color(0xFFAC191F); // Red
-        case 'MEDIUM':
+        case 'MODERATE':
           return const Color(0xFFF59E0B); // Orange/Yellow
         default:
           return const Color(0xFF6B7280); // Gray
