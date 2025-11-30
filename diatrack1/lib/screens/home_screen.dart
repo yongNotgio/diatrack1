@@ -1022,6 +1022,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                             patientId:
                                                 widget
                                                     .patientData['patient_id'],
+                                            phase: widget.patientData['phase'],
                                           ),
                                     ),
                                   );

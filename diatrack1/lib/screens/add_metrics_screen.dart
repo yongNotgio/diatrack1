@@ -151,9 +151,7 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
             builder: (BuildContext context) {
               return const Center(
                 child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    Color(0xFF1DA1F2),
-                  ),
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1DA1F2)),
                 ),
               );
             },
@@ -173,8 +171,7 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
             await Navigator.push(
               context,
               MaterialPageRoute(
-                builder:
-                    (context) => RiskAssessmentScreen(riskData: riskData),
+                builder: (context) => RiskAssessmentScreen(riskData: riskData),
               ),
             );
           }
