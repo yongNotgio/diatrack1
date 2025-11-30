@@ -124,4 +124,9 @@ class DateFormatter {
     ];
     return days[date.weekday - 1];
   }
+
+  static String formatDayName(DateTime date) {
+    final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    return days[date.weekday - 1];
+  }
 }

@@ -3,27 +3,36 @@ import 'package:flutter/material.dart';
 import '../models/health_metric.dart';
 import '../utils/date_formatter.dart';
 
-class BloodSugarChart extends StatelessWidget {
+class BloodSugarChart extends StatefulWidget {
   final List<HealthMetric> metrics;
 
   const BloodSugarChart({Key? key, required this.metrics}) : super(key: key);
 
   @override
+  State<BloodSugarChart> createState() => _BloodSugarChartState();
+}
+
+class _BloodSugarChartState extends State<BloodSugarChart> {
+  bool _isMonthly = false;
+
+  @override
   Widget build(BuildContext context) {
     final spots = <FlSpot>[];
-    final weekDays = DateFormatter.getWeekDays();
+    final int daysCount = _isMonthly ? 30 : 7;
 
-    // Get last 7 days of data
-    final last7Days = List.generate(7, (index) {
-      final date = DateTime.now().subtract(Duration(days: 6 - index));
+    // Get last N days of data
+    final lastNDays = List.generate(daysCount, (index) {
+      final date = DateTime.now().subtract(
+        Duration(days: daysCount - 1 - index),
+      );
       return date;
     });
 
     // Map data to spots
-    for (int i = 0; i < last7Days.length; i++) {
-      final date = last7Days[i];
+    for (int i = 0; i < lastNDays.length; i++) {
+      final date = lastNDays[i];
       final dayMetrics =
-          metrics
+          widget.metrics
               .where(
                 (m) =>
                     m.submissionDate.year == date.year &&
@@ -34,9 +43,6 @@ class BloodSugarChart extends StatelessWidget {
 
       if (dayMetrics.isNotEmpty && dayMetrics.first.bloodGlucose != null) {
         spots.add(FlSpot(i.toDouble(), dayMetrics.first.bloodGlucose!));
-      } else {
-        // Add empty spot for missing data
-        spots.add(FlSpot(i.toDouble(), 0));
       }
     }
 
@@ -59,21 +65,72 @@ class BloodSugarChart extends StatelessWidget {
                     color: Color(0xFF069ADE),
                   ),
                 ),
-                Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.fullscreen, size: 20),
-                      onPressed: () {
-                        // TODO: Implement expand functionality
-                      },
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.share, size: 20),
-                      onPressed: () {
-                        // TODO: Implement share functionality
-                      },
-                    ),
-                  ],
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _isMonthly = false;
+                          });
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color:
+                                !_isMonthly
+                                    ? const Color(0xFF069ADE)
+                                    : Colors.transparent,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            'Weekly',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: !_isMonthly ? Colors.white : Colors.black,
+                            ),
+                          ),
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _isMonthly = true;
+                          });
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color:
+                                _isMonthly
+                                    ? const Color(0xFF069ADE)
+                                    : Colors.transparent,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            'Monthly',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: _isMonthly ? Colors.white : Colors.black,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -86,7 +143,7 @@ class BloodSugarChart extends StatelessWidget {
                     show: true,
                     drawVerticalLine: true,
                     horizontalInterval: 50,
-                    verticalInterval: 1,
+                    verticalInterval: _isMonthly ? 7 : 1,
                     getDrawingHorizontalLine: (value) {
                       return FlLine(
                         color: Colors.grey.withOpacity(0.3),
@@ -112,18 +169,21 @@ class BloodSugarChart extends StatelessWidget {
                       sideTitles: SideTitles(
                         showTitles: true,
                         reservedSize: 30,
-                        interval: 1,
+                        interval: _isMonthly ? 7 : 1,
                         getTitlesWidget: (value, meta) {
                           if (value.toInt() >= 0 &&
-                              value.toInt() < weekDays.length) {
+                              value.toInt() < lastNDays.length) {
+                            final date = lastNDays[value.toInt()];
                             return SideTitleWidget(
                               axisSide: meta.axisSide,
                               child: Text(
-                                weekDays[value.toInt()],
+                                _isMonthly
+                                    ? DateFormatter.formatShortDate(date)
+                                    : DateFormatter.formatDayName(date),
                                 style: const TextStyle(
                                   color: Colors.grey,
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 12,
+                                  fontSize: 10,
                                 ),
                               ),
                             );
@@ -155,7 +215,7 @@ class BloodSugarChart extends StatelessWidget {
                     border: Border.all(color: Colors.grey.withOpacity(0.3)),
                   ),
                   minX: 0,
-                  maxX: 6,
+                  maxX: (daysCount - 1).toDouble(),
                   minY: 0,
                   maxY: 300,
                   lineBarsData: [
@@ -171,7 +231,7 @@ class BloodSugarChart extends StatelessWidget {
                         show: true,
                         getDotPainter: (spot, percent, barData, index) {
                           return FlDotCirclePainter(
-                            radius: 4,
+                            radius: _isMonthly ? 3 : 4,
                             color: const Color(0xFF4CAF50),
                             strokeWidth: 2,
                             strokeColor: Colors.white,
@@ -192,15 +252,17 @@ class BloodSugarChart extends StatelessWidget {
                   lineTouchData: LineTouchData(
                     enabled: true,
                     touchTooltipData: LineTouchTooltipData(
-                      tooltipBgColor: Colors.blueGrey.withOpacity(0.8),
+                      tooltipBgColor: Colors.blueGrey.withOpacity(0.9),
                       getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
                         return touchedBarSpots.map((barSpot) {
-                          final flSpot = barSpot;
+                          final date = lastNDays[barSpot.x.toInt()];
+                          final dateStr = DateFormatter.formatShortDate(date);
                           return LineTooltipItem(
-                            '${flSpot.y.toInt()} mg/dL',
+                            '$dateStr\n${barSpot.y.toInt()} mg/dL',
                             const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
+                              fontSize: 12,
                             ),
                           );
                         }).toList();

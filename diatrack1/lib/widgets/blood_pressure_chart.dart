@@ -3,24 +3,35 @@ import 'package:flutter/material.dart';
 import '../models/health_metric.dart';
 import '../utils/date_formatter.dart';
 
-class BloodPressureChart extends StatelessWidget {
+class BloodPressureChart extends StatefulWidget {
   final List<HealthMetric> metrics;
 
   const BloodPressureChart({Key? key, required this.metrics}) : super(key: key);
 
   @override
+  State<BloodPressureChart> createState() => _BloodPressureChartState();
+}
+
+class _BloodPressureChartState extends State<BloodPressureChart> {
+  bool _isMonthly = true;
+
+  @override
   Widget build(BuildContext context) {
-    // Get last 30 days of data
-    final last30Days = List.generate(30, (index) {
-      final date = DateTime.now().subtract(Duration(days: 29 - index));
+    final int daysCount = _isMonthly ? 30 : 7;
+
+    // Get last N days of data
+    final lastNDays = List.generate(daysCount, (index) {
+      final date = DateTime.now().subtract(
+        Duration(days: daysCount - 1 - index),
+      );
       return date;
     });
 
     // Group metrics by date
     final groupedData = <DateTime, Map<String, double>>{};
-    for (final date in last30Days) {
+    for (final date in lastNDays) {
       final dayMetrics =
-          metrics
+          widget.metrics
               .where(
                 (m) =>
                     m.submissionDate.year == date.year &&
@@ -39,8 +50,8 @@ class BloodPressureChart extends StatelessWidget {
     }
 
     final barGroups = <BarChartGroupData>[];
-    for (int i = 0; i < last30Days.length; i++) {
-      final date = last30Days[i];
+    for (int i = 0; i < lastNDays.length; i++) {
+      final date = lastNDays[i];
       final data = groupedData[date];
 
       if (data != null && (data['systolic']! > 0 || data['diastolic']! > 0)) {
@@ -51,7 +62,7 @@ class BloodPressureChart extends StatelessWidget {
               BarChartRodData(
                 toY: data['diastolic']!,
                 color: const Color(0xFF4CAF50),
-                width: 8,
+                width: _isMonthly ? 6 : 12,
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(2),
                   topRight: Radius.circular(2),
@@ -60,7 +71,7 @@ class BloodPressureChart extends StatelessWidget {
               BarChartRodData(
                 toY: data['systolic']!,
                 color: const Color(0xFFF44336),
-                width: 8,
+                width: _isMonthly ? 6 : 12,
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(2),
                   topRight: Radius.circular(2),
@@ -92,17 +103,70 @@ class BloodPressureChart extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
                   decoration: BoxDecoration(
                     color: Colors.grey.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Text(
-                    'Monthly',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _isMonthly = false;
+                          });
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color:
+                                !_isMonthly
+                                    ? const Color(0xFF069ADE)
+                                    : Colors.transparent,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            'Weekly',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: !_isMonthly ? Colors.white : Colors.black,
+                            ),
+                          ),
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _isMonthly = true;
+                          });
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color:
+                                _isMonthly
+                                    ? const Color(0xFF069ADE)
+                                    : Colors.transparent,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            'Monthly',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: _isMonthly ? Colors.white : Colors.black,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -111,27 +175,6 @@ class BloodPressureChart extends StatelessWidget {
             // Legend
             Row(
               children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 12,
-                      height: 12,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF4CAF50),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    const Text(
-                      'Diastolic',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(width: 16),
                 Row(
                   children: [
                     Container(
@@ -152,6 +195,27 @@ class BloodPressureChart extends StatelessWidget {
                     ),
                   ],
                 ),
+                const SizedBox(width: 16),
+                Row(
+                  children: [
+                    Container(
+                      width: 12,
+                      height: 12,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF4CAF50),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Text(
+                      'Diastolic',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
             const SizedBox(height: 16),
@@ -160,21 +224,28 @@ class BloodPressureChart extends StatelessWidget {
               child: BarChart(
                 BarChartData(
                   alignment: BarChartAlignment.spaceAround,
-                  maxY: 250,
+                  maxY: 200,
                   barTouchData: BarTouchData(
                     enabled: true,
                     touchTooltipData: BarTouchTooltipData(
-                      tooltipBgColor: Colors.blueGrey.withOpacity(0.8),
+                      tooltipBgColor: Colors.blueGrey.withOpacity(0.9),
                       getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                        final systolic = rod.toY;
-                        final diastolic = group.barRods[0].toY;
-                        return BarTooltipItem(
-                          'Systolic: ${systolic.toInt()}\nDiastolic: ${diastolic.toInt()}',
-                          const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        );
+                        final date = lastNDays[group.x];
+                        final dateStr = DateFormatter.formatShortDate(date);
+                        final systolic = group.barRods[1].toY.toInt();
+                        final diastolic = group.barRods[0].toY.toInt();
+
+                        if (rodIndex == 0) {
+                          return BarTooltipItem(
+                            '$dateStr\n$systolic/$diastolic mmHg',
+                            const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          );
+                        }
+                        return null;
                       },
                     ),
                   ),
@@ -190,15 +261,17 @@ class BloodPressureChart extends StatelessWidget {
                       sideTitles: SideTitles(
                         showTitles: true,
                         reservedSize: 30,
-                        interval: 7,
+                        interval: _isMonthly ? 7 : 1,
                         getTitlesWidget: (value, meta) {
                           if (value.toInt() >= 0 &&
-                              value.toInt() < last30Days.length) {
-                            final date = last30Days[value.toInt()];
+                              value.toInt() < lastNDays.length) {
+                            final date = lastNDays[value.toInt()];
                             return SideTitleWidget(
                               axisSide: meta.axisSide,
                               child: Text(
-                                DateFormatter.formatShortDate(date),
+                                _isMonthly
+                                    ? DateFormatter.formatShortDate(date)
+                                    : DateFormatter.formatDayName(date),
                                 style: const TextStyle(
                                   color: Colors.grey,
                                   fontWeight: FontWeight.bold,
@@ -214,7 +287,7 @@ class BloodPressureChart extends StatelessWidget {
                     leftTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
-                        interval: 125,
+                        interval: 50,
                         getTitlesWidget: (value, meta) {
                           return Text(
                             value.toInt().toString(),
@@ -236,7 +309,7 @@ class BloodPressureChart extends StatelessWidget {
                   barGroups: barGroups,
                   gridData: FlGridData(
                     show: true,
-                    horizontalInterval: 125,
+                    horizontalInterval: 50,
                     getDrawingHorizontalLine: (value) {
                       return FlLine(
                         color: Colors.grey.withOpacity(0.3),
