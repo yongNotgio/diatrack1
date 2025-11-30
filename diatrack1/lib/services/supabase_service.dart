@@ -102,7 +102,7 @@ class SupabaseService {
     }
   }
 
-  Future<void> addHealthMetric({
+  Future<String?> addHealthMetric({
     required String patientId,
     double? bloodGlucose,
     int? bpSystolic,
@@ -134,10 +134,12 @@ class SupabaseService {
       if (metricId == null) {
         // For new entries, set both submission_date and updated_at to current time
         data['submission_date'] = now;
-        await supabase.from('health_metrics').insert(data);
+        final response = await supabase.from('health_metrics').insert(data).select('metric_id').single();
+        return response['metric_id'] as String?;
       } else {
         // For updates, only update the fields and updated_at timestamp
-        await supabase.from('health_metrics').update(data).eq('id', metricId);
+        await supabase.from('health_metrics').update(data).eq('metric_id', metricId);
+        return metricId;
       }
     } catch (e) {
       throw Exception('Failed to save health metric: $e');
@@ -159,7 +161,7 @@ class SupabaseService {
 
   Future<void> deleteHealthMetric(String metricId) async {
     try {
-      await supabase.from('health_metrics').delete().eq('id', metricId);
+      await supabase.from('health_metrics').delete().eq('metric_id', metricId);
     } on PostgrestException catch (e) {
       throw Exception('Database error: ${e.message}');
     } catch (e) {
@@ -198,7 +200,7 @@ class SupabaseService {
           await supabase
               .from('health_metrics')
               .update(data)
-              .eq('id', metricId)
+              .eq('metric_id', metricId)
               .select()
               .single();
 
@@ -674,6 +676,7 @@ class SupabaseService {
   /// Assess surgical risk for a patient
   Future<Map<String, dynamic>> assessSurgicalRisk({
     required String patientId,
+    String? metricId,
   }) async {
     try {
       // Fetch patient data to get age, comorbidities, and BMI
@@ -684,15 +687,23 @@ class SupabaseService {
               .eq('patient_id', patientId)
               .single();
 
-      // Fetch latest health metrics for glucose and BP
-      final metricsResponse =
-          await supabase
-              .from('health_metrics')
-              .select('metric_id, blood_glucose, bp_systolic')
-              .eq('patient_id', patientId)
-              .order('submission_date', ascending: false)
-              .limit(1)
-              .single();
+      // Fetch health metrics - either specific metric or latest one
+      Map<String, dynamic> metricsResponse;
+      if (metricId != null) {
+        metricsResponse = await supabase
+            .from('health_metrics')
+            .select('metric_id, blood_glucose, bp_systolic')
+            .eq('metric_id', metricId)
+            .single();
+      } else {
+        metricsResponse = await supabase
+            .from('health_metrics')
+            .select('metric_id, blood_glucose, bp_systolic')
+            .eq('patient_id', patientId)
+            .order('submission_date', ascending: false)
+            .limit(1)
+            .single();
+      }
 
       // Calculate age
       final dateOfBirth = DateTime.parse(patientResponse['date_of_birth']);

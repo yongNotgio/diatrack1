@@ -7,6 +7,7 @@ import '../widgets/blood_sugar_chart.dart';
 import '../widgets/blood_pressure_chart.dart';
 import '../widgets/wound_photos_section.dart';
 import 'notifications_screen.dart';
+import 'add_metrics_screen.dart';
 
 class HealthMetricsHistory extends StatefulWidget {
   final String patientId;
@@ -331,8 +332,27 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
                         width: 18,
                         height: 18,
                       ),
-                      onPressed: () {
-                        // TODO: Implement edit functionality
+                      onPressed: () async {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => AddMetricsScreen(
+                              patientId: widget.patientId,
+                              existingMetric: {
+                                'metric_id': metric.id,
+                                'blood_glucose': metric.bloodGlucose,
+                                'bp_systolic': metric.bpSystolic,
+                                'bp_diastolic': metric.bpDiastolic,
+                                'pulse_rate': metric.pulseRate,
+                                'notes': metric.notes,
+                                'wound_photo_url': metric.woundPhotoUrl,
+                              },
+                            ),
+                          ),
+                        );
+                        if (result == true) {
+                          _refreshData();
+                        }
                       },
                     ),
                     IconButton(

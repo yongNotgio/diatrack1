@@ -123,7 +123,7 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
         }
       }
 
-      await _supabaseService.addHealthMetric(
+      final savedMetricId = await _supabaseService.addHealthMetric(
         patientId: widget.patientId,
         bloodGlucose: double.tryParse(_glucoseController.text),
         bpSystolic: int.tryParse(_systolicController.text),
@@ -131,7 +131,7 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
         pulseRate: int.tryParse(_pulseController.text),
         woundPhotoUrl: _woundPhotoUrl,
         notes: _notesController.text.trim(),
-        metricId: widget.existingMetric?['id'],
+        metricId: widget.existingMetric?['metric_id'],
       );
 
       if (mounted) {
@@ -142,57 +142,56 @@ class _AddMetricsScreenState extends State<AddMetricsScreen> {
           ),
         );
 
-        // Only assess risk for new metric submissions (not edits)
-        if (widget.existingMetric == null) {
-          try {
-            // Show loading indicator
-            showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (BuildContext context) {
-                return const Center(
-                  child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      Color(0xFF1DA1F2),
-                    ),
+        // Assess risk for both new and edited submissions
+        try {
+          // Show loading indicator
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return const Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    Color(0xFF1DA1F2),
                   ),
-                );
-              },
-            );
-
-            // Call risk assessment API
-            final riskData = await _supabaseService.assessSurgicalRisk(
-              patientId: widget.patientId,
-            );
-
-            // Close loading dialog
-            if (mounted) Navigator.pop(context);
-
-            // Navigate to risk assessment screen
-            if (mounted) {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder:
-                      (context) => RiskAssessmentScreen(riskData: riskData),
                 ),
               );
-            }
-          } catch (e) {
-            // Close loading dialog
-            if (mounted) Navigator.pop(context);
+            },
+          );
 
-            // Show error but don't block navigation
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    'Risk assessment unavailable: ${e.toString().replaceFirst('Exception: ', '')}',
-                  ),
-                  backgroundColor: Colors.orange,
+          // Call risk assessment API with the saved metric ID
+          final riskData = await _supabaseService.assessSurgicalRisk(
+            patientId: widget.patientId,
+            metricId: savedMetricId,
+          );
+
+          // Close loading dialog
+          if (mounted) Navigator.pop(context);
+
+          // Navigate to risk assessment screen
+          if (mounted) {
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder:
+                    (context) => RiskAssessmentScreen(riskData: riskData),
+              ),
+            );
+          }
+        } catch (e) {
+          // Close loading dialog
+          if (mounted) Navigator.pop(context);
+
+          // Show error but don't block navigation
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Risk assessment unavailable: ${e.toString().replaceFirst('Exception: ', '')}',
                 ),
-              );
-            }
+                backgroundColor: Colors.orange,
+              ),
+            );
           }
         }
 

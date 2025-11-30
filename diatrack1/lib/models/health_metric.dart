@@ -47,7 +47,7 @@ class HealthMetric {
 
   factory HealthMetric.fromMap(Map<String, dynamic> map) {
     return HealthMetric(
-      id: map['id'] ?? '',
+      id: map['metric_id'] ?? '',
       patientId: map['patient_id'] ?? '',
       bloodGlucose: map['blood_glucose']?.toDouble(),
       bpSystolic: map['bp_systolic'],
