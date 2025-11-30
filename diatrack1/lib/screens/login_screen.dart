@@ -18,6 +18,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   String? _errorMessage;
   bool _is18AndAgree = false;
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
@@ -208,8 +209,21 @@ class _LoginScreenState extends State<LoginScreen> {
                       horizontal: 16,
                       vertical: 16,
                     ),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                        color: Colors.grey[600],
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
+                    ),
                   ),
-                  obscureText: true,
+                  obscureText: _obscurePassword,
                   validator:
                       (value) =>
                           (value == null || value.isEmpty)
@@ -230,7 +244,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   },
                   child: RichText(
                     text: TextSpan(
-                      style: const TextStyle(fontSize: 12, fontFamily: 'Poppins'),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontFamily: 'Poppins',
+                      ),
                       children: [
                         TextSpan(
                           text: 'Forgot password? ',

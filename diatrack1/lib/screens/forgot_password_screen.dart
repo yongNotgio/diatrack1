@@ -97,7 +97,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         // Notify secretary if patient has a preferred doctor
         final doctorId = _patientData!['preferred_doctor_id'];
         if (doctorId != null) {
-          final secretary = await _supabaseService.getSecretaryForDoctor(doctorId);
+          final secretary = await _supabaseService.getSecretaryForDoctor(
+            doctorId,
+          );
           if (secretary != null) {
             final patientName =
                 '${_patientData!['first_name']} ${_patientData!['last_name']}';
@@ -113,37 +115,38 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           showDialog(
             context: context,
             barrierDismissible: false,
-            builder: (context) => AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              title: const Row(
-                children: [
-                  Icon(Icons.check_circle, color: Colors.green, size: 28),
-                  SizedBox(width: 12),
-                  Text('Success'),
-                ],
-              ),
-              content: const Text(
-                'Your password has been reset successfully. You can now login with your new password.',
-                style: TextStyle(fontFamily: 'Poppins'),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop(); // Close dialog
-                    Navigator.of(context).pop(); // Go back to login
-                  },
-                  child: Text(
-                    'Back to Login',
-                    style: TextStyle(
-                      color: primaryBlue,
-                      fontWeight: FontWeight.w600,
-                    ),
+            builder:
+                (context) => AlertDialog(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
                   ),
+                  title: const Row(
+                    children: [
+                      Icon(Icons.check_circle, color: Colors.green, size: 28),
+                      SizedBox(width: 12),
+                      Text('Success'),
+                    ],
+                  ),
+                  content: const Text(
+                    'Your password has been reset successfully. You can now login with your new password.',
+                    style: TextStyle(fontFamily: 'Poppins'),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop(); // Close dialog
+                        Navigator.of(context).pop(); // Go back to login
+                      },
+                      child: Text(
+                        'Back to Login',
+                        style: TextStyle(
+                          color: primaryBlue,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
           );
         }
       } else {
@@ -235,7 +238,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.error_outline, color: Colors.red, size: 20),
+                        const Icon(
+                          Icons.error_outline,
+                          color: Colors.red,
+                          size: 20,
+                        ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
@@ -264,7 +271,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         color: Colors.grey[600],
                         fontFamily: 'Poppins',
                       ),
-                      prefixIcon: Icon(Icons.email_outlined, color: primaryBlue),
+                      prefixIcon: Icon(
+                        Icons.email_outlined,
+                        color: primaryBlue,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(color: Colors.grey[300]!),
@@ -275,7 +285,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: primaryBlue, width: 2),
+                        borderSide: const BorderSide(
+                          color: primaryBlue,
+                          width: 2,
+                        ),
                       ),
                       filled: true,
                       fillColor: Colors.grey[50],
@@ -304,24 +317,25 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         ),
                         elevation: 0,
                       ),
-                      child: _isLoading
-                          ? const SizedBox(
-                              height: 24,
-                              width: 24,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
+                      child:
+                          _isLoading
+                              ? const SizedBox(
+                                height: 24,
+                                width: 24,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                              : const Text(
+                                'Continue',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  fontFamily: 'Poppins',
+                                  color: Colors.white,
+                                ),
                               ),
-                            )
-                          : const Text(
-                              'Continue',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                fontFamily: 'Poppins',
-                                color: Colors.white,
-                              ),
-                            ),
                     ),
                   ),
                 ] else ...[
@@ -361,7 +375,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           ),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.edit, color: primaryBlue, size: 20),
+                          icon: const Icon(
+                            Icons.edit,
+                            color: primaryBlue,
+                            size: 20,
+                          ),
                           onPressed: () {
                             setState(() {
                               _emailVerified = false;
@@ -390,7 +408,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       prefixIcon: Icon(Icons.lock_outline, color: primaryBlue),
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                          _obscurePassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
                           color: Colors.grey[600],
                         ),
                         onPressed: () {
@@ -409,7 +429,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: primaryBlue, width: 2),
+                        borderSide: const BorderSide(
+                          color: primaryBlue,
+                          width: 2,
+                        ),
                       ),
                       filled: true,
                       fillColor: Colors.grey[50],
@@ -460,7 +483,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: primaryBlue, width: 2),
+                        borderSide: const BorderSide(
+                          color: primaryBlue,
+                          width: 2,
+                        ),
                       ),
                       filled: true,
                       fillColor: Colors.grey[50],
@@ -489,24 +515,25 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         ),
                         elevation: 0,
                       ),
-                      child: _isLoading
-                          ? const SizedBox(
-                              height: 24,
-                              width: 24,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
+                      child:
+                          _isLoading
+                              ? const SizedBox(
+                                height: 24,
+                                width: 24,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                              : const Text(
+                                'Reset Password',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  fontFamily: 'Poppins',
+                                  color: Colors.white,
+                                ),
                               ),
-                            )
-                          : const Text(
-                              'Reset Password',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                fontFamily: 'Poppins',
-                                color: Colors.white,
-                              ),
-                            ),
                     ),
                   ),
                 ],

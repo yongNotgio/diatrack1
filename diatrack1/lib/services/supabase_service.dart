@@ -822,11 +822,14 @@ class SupabaseService {
   /// Check if a patient email exists and return patient data
   Future<Map<String, dynamic>?> getPatientByEmail(String email) async {
     try {
-      final response = await supabase
-          .from('patients')
-          .select('patient_id, first_name, last_name, email, preferred_doctor_id')
-          .eq('email', email.toLowerCase().trim())
-          .maybeSingle();
+      final response =
+          await supabase
+              .from('patients')
+              .select(
+                'patient_id, first_name, last_name, email, preferred_doctor_id',
+              )
+              .eq('email', email.toLowerCase().trim())
+              .maybeSingle();
       return response;
     } catch (e) {
       return null;
@@ -852,13 +855,16 @@ class SupabaseService {
   /// Get secretary for a patient's preferred doctor
   Future<Map<String, dynamic>?> getSecretaryForDoctor(String doctorId) async {
     try {
-      final response = await supabase
-          .from('secretary_doctor_links')
-          .select('secretary:secretary_id(secretary_id, first_name, last_name)')
-          .eq('doctor_id', doctorId)
-          .limit(1)
-          .maybeSingle();
-      
+      final response =
+          await supabase
+              .from('secretary_doctor_links')
+              .select(
+                'secretary:secretary_id(secretary_id, first_name, last_name)',
+              )
+              .eq('doctor_id', doctorId)
+              .limit(1)
+              .maybeSingle();
+
       if (response != null && response['secretary'] != null) {
         return response['secretary'];
       }
