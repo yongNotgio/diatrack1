@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/supabase_service.dart';
+import 'forgot_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -218,23 +219,33 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 12),
 
                 // Forgot password text
-                RichText(
-                  text: TextSpan(
-                    style: const TextStyle(fontSize: 12, fontFamily: 'Poppins'),
-                    children: [
-                      TextSpan(
-                        text: 'Forgot password? ',
-                        style: TextStyle(
-                          color: primaryBlue,
-                          fontWeight: FontWeight.w600,
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ForgotPasswordScreen(),
+                      ),
+                    );
+                  },
+                  child: RichText(
+                    text: TextSpan(
+                      style: const TextStyle(fontSize: 12, fontFamily: 'Poppins'),
+                      children: [
+                        TextSpan(
+                          text: 'Forgot password? ',
+                          style: TextStyle(
+                            color: primaryBlue,
+                            fontWeight: FontWeight.w600,
+                            decoration: TextDecoration.underline,
+                          ),
                         ),
-                      ),
-                      TextSpan(
-                        text:
-                            'Please contact your clinic\nsecretary for assistance.',
-                        style: TextStyle(color: Colors.grey[600]),
-                      ),
-                    ],
+                        TextSpan(
+                          text: 'Click here to reset.',
+                          style: TextStyle(color: Colors.grey[600]),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),

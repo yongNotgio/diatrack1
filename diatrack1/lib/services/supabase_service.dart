@@ -818,4 +818,86 @@ class SupabaseService {
       throw Exception('Failed to assess surgical risk: $e');
     }
   }
+
+  /// Check if a patient email exists and return patient data
+  Future<Map<String, dynamic>?> getPatientByEmail(String email) async {
+    try {
+      final response = await supabase
+          .from('patients')
+          .select('patient_id, first_name, last_name, email, preferred_doctor_id')
+          .eq('email', email.toLowerCase().trim())
+          .maybeSingle();
+      return response;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// Reset patient password
+  Future<bool> resetPatientPassword({
+    required String patientId,
+    required String newPassword,
+  }) async {
+    try {
+      await supabase
+          .from('patients')
+          .update({'password': newPassword})
+          .eq('patient_id', patientId);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Get secretary for a patient's preferred doctor
+  Future<Map<String, dynamic>?> getSecretaryForDoctor(String doctorId) async {
+    try {
+      final response = await supabase
+          .from('secretary_doctor_links')
+          .select('secretary:secretary_id(secretary_id, first_name, last_name)')
+          .eq('doctor_id', doctorId)
+          .limit(1)
+          .maybeSingle();
+      
+      if (response != null && response['secretary'] != null) {
+        return response['secretary'];
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// Notify secretary about patient password reset
+  Future<void> notifySecretaryPasswordReset({
+    required String secretaryId,
+    required String patientName,
+    required String patientId,
+  }) async {
+    try {
+      await supabase.from('notifications').insert({
+        'user_id': secretaryId,
+        'user_role': 'secretary',
+        'title': 'Patient Password Reset',
+        'message': '$patientName has reset their password.',
+        'type': 'patient',
+        'reference_id': patientId,
+        'is_read': false,
+      });
+
+      // Log to audit
+      await supabase.from('audit_logs').insert({
+        'actor_type': 'patient',
+        'actor_id': patientId,
+        'actor_name': patientName,
+        'user_id': patientId,
+        'module': 'credentials',
+        'action_type': 'reset',
+        'new_value': 'Password reset by patient',
+        'source_page': 'forgot_password_screen',
+      });
+    } catch (e) {
+      // Silent fail for notification
+    }
+  }
 }

@@ -690,13 +690,14 @@ class _TablesScreenState extends State<_TablesScreen> {
     }
     final query = _searchQuery.toLowerCase();
     return widget.metrics.where((metric) {
-      final dateStr = DateFormatter.formatDateTime(metric.submissionDate).toLowerCase();
+      final dateStr =
+          DateFormatter.formatDateTime(metric.submissionDate).toLowerCase();
       final glucose = metric.bloodGlucose?.toString() ?? '';
       final systolic = metric.bpSystolic?.toString() ?? '';
       final diastolic = metric.bpDiastolic?.toString() ?? '';
       final pulseRate = metric.pulseRate?.toString() ?? '';
       final risk = (metric.riskClassification ?? '').toLowerCase();
-      
+
       return dateStr.contains(query) ||
           glucose.contains(query) ||
           systolic.contains(query) ||
