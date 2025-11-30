@@ -50,7 +50,7 @@ class OverviewCards extends StatelessWidget {
         ),
         _OverviewCard(
           title: 'Risk\nClassification',
-          value: riskClassification,
+          value: riskClassification.toUpperCase(),
           unit: 'Surgical Risk',
           color: const Color(0xFF7619AC),
           backgroundColor: const Color(0xFFF6E5FF),

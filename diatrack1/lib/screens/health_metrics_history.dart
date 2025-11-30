@@ -684,6 +684,28 @@ class _TablesScreenState extends State<_TablesScreen> {
     'Risk Class Table',
   ];
 
+  List<HealthMetric> get _filteredMetrics {
+    if (_searchQuery.isEmpty) {
+      return widget.metrics;
+    }
+    final query = _searchQuery.toLowerCase();
+    return widget.metrics.where((metric) {
+      final dateStr = DateFormatter.formatDateTime(metric.submissionDate).toLowerCase();
+      final glucose = metric.bloodGlucose?.toString() ?? '';
+      final systolic = metric.bpSystolic?.toString() ?? '';
+      final diastolic = metric.bpDiastolic?.toString() ?? '';
+      final pulseRate = metric.pulseRate?.toString() ?? '';
+      final risk = (metric.riskClassification ?? '').toLowerCase();
+      
+      return dateStr.contains(query) ||
+          glucose.contains(query) ||
+          systolic.contains(query) ||
+          diastolic.contains(query) ||
+          pulseRate.contains(query) ||
+          risk.contains(query);
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -761,7 +783,7 @@ class _TablesScreenState extends State<_TablesScreen> {
             ),
           ),
 
-          // Filter and Export buttons
+          // Filter button
           Container(
             color: Colors.white,
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -798,36 +820,6 @@ class _TablesScreenState extends State<_TablesScreen> {
                             fontFamily: 'Poppins',
                             fontSize: 14,
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {},
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF0D629E),
-                      side: const BorderSide(color: Color(0xFF0D629E)),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Image.asset(
-                          'assets/images/export.png',
-                          width: 18,
-                          height: 18,
-                          color: const Color(0xFF0D629E),
-                        ),
-                        const SizedBox(width: 8),
-                        const Text(
-                          'Export',
-                          style: TextStyle(fontFamily: 'Poppins', fontSize: 14),
                         ),
                       ],
                     ),
@@ -982,15 +974,14 @@ class _TablesScreenState extends State<_TablesScreen> {
                   Expanded(
                     child: ListView.builder(
                       padding: const EdgeInsets.all(12),
-                      itemCount: widget.metrics.length,
+                      itemCount: _filteredMetrics.length,
                       itemBuilder: (context, index) {
                         final totalMetrics = widget.metrics.length;
                         final metric =
-                            widget
-                                .metrics[index]; // Newest first (descending order)
-                        final entryNumber =
-                            totalMetrics -
-                            index; // Keep original numbering: oldest=1, newest=highest
+                            _filteredMetrics[index]; // Newest first (descending order)
+                        // Find the original index to get correct entry number
+                        final originalIndex = widget.metrics.indexOf(metric);
+                        final entryNumber = totalMetrics - originalIndex;
                         final entryId =
                             '#${entryNumber.toString().padLeft(4, '0')}';
 
@@ -1602,12 +1593,13 @@ class _TablesScreenState extends State<_TablesScreen> {
 
   List<Widget> _buildTableRows(String metricType) {
     final totalMetrics = widget.metrics.length;
-    return List<Widget>.generate(totalMetrics, (index) {
-      final metric = widget.metrics[index]; // Newest first (descending order)
-      final entryNumber =
-          totalMetrics -
-          index; // Keep original numbering: oldest=1, newest=highest
-      final isLastRow = index == totalMetrics - 1;
+    final filtered = _filteredMetrics;
+    return List<Widget>.generate(filtered.length, (index) {
+      final metric = filtered[index]; // Newest first (descending order)
+      // Find the original index in widget.metrics to get correct entry number
+      final originalIndex = widget.metrics.indexOf(metric);
+      final entryNumber = totalMetrics - originalIndex;
+      final isLastRow = index == filtered.length - 1;
 
       return Container(
         decoration: BoxDecoration(

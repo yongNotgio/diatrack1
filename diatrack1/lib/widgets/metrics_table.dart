@@ -232,22 +232,6 @@ class _MetricsTableState extends State<MetricsTable> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      // TODO: Implement export functionality
-                    },
-                    icon: const Icon(Icons.upload, size: 16),
-                    label: const Text('Export'),
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: Colors.grey.withOpacity(0.3)),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                  ),
-                ),
               ],
             ),
             const SizedBox(height: 16),
