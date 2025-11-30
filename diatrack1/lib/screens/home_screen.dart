@@ -10,6 +10,7 @@ import 'login_screen.dart';
 import './medication.dart';
 import './health_metrics_history.dart';
 import './notifications_screen.dart';
+import 'update_password_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final Map<String, dynamic> patientData;
@@ -658,7 +659,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   'MMM d, yyyy',
                                 ).format(dt).toUpperCase();
                             nextCheckupTime =
-                                DateFormat('h a').format(dt).toUpperCase();
+                                DateFormat('h:mm a').format(dt).toUpperCase();
                             hasAppointment = true;
                           }
                         }
@@ -1203,6 +1204,33 @@ class _HomeScreenState extends State<HomeScreen> {
                   onTap: () {
                     Navigator.pop(context); // Close drawer
                     _updateProfilePicture();
+                  },
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(
+                    Icons.lock_outline,
+                    color: Color(0xFF1DA1F2),
+                  ),
+                  title: const Text(
+                    'Update Password',
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 16,
+                      color: Color(0xFF0D629E),
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context); // Close drawer
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (context) => UpdatePasswordScreen(
+                              patientData: widget.patientData,
+                            ),
+                      ),
+                    );
                   },
                 ),
                 const Divider(height: 1),

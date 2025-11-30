@@ -33,12 +33,29 @@ class _AppointmentDialogState extends State<AppointmentDialog> {
     _selectedTime = TimeOfDay.fromDateTime(widget.currentDateTime);
   }
 
+  // Check if a date is a weekday (Monday-Friday)
+  bool _isWeekday(DateTime date) {
+    return date.weekday >= 1 && date.weekday <= 5;
+  }
+
+  // Get the next available weekday
+  DateTime _getNextWeekday(DateTime date) {
+    while (!_isWeekday(date)) {
+      date = date.add(const Duration(days: 1));
+    }
+    return date;
+  }
+
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: _selectedDate ?? DateTime.now(),
+      initialDate: _getNextWeekday(_selectedDate ?? DateTime.now()),
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
+      selectableDayPredicate: (DateTime date) {
+        // Only allow weekdays (Monday-Friday)
+        return _isWeekday(date);
+      },
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -63,7 +80,7 @@ class _AppointmentDialogState extends State<AppointmentDialog> {
   Future<void> _selectTime(BuildContext context) async {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
-      initialTime: _selectedTime ?? TimeOfDay.now(),
+      initialTime: _selectedTime ?? const TimeOfDay(hour: 9, minute: 0),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -78,7 +95,19 @@ class _AppointmentDialogState extends State<AppointmentDialog> {
         );
       },
     );
-    if (picked != null && picked != _selectedTime) {
+    if (picked != null) {
+      // Validate time is between 8 AM and 6 PM
+      if (picked.hour < 8 || picked.hour >= 18) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Please select a time between 8:00 AM and 6:00 PM'),
+              backgroundColor: Colors.redAccent,
+            ),
+          );
+        }
+        return;
+      }
       setState(() {
         _selectedTime = picked;
       });
