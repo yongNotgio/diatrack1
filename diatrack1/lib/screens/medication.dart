@@ -290,53 +290,65 @@ class _MedicationScreenState extends State<MedicationScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   GestureDetector(
-                    onTap: isTaken ? null : () async {
-                      final confirmed = await showDialog<bool>(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          title: const Text(
-                            'Confirm Medication',
-                            style: TextStyle(
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          content: Text(
-                            'Have you taken ${med.name} (${med.dosage})?',
-                            style: const TextStyle(fontFamily: 'Poppins'),
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(false),
-                              child: const Text(
-                                'Cancel',
-                                style: TextStyle(
-                                  fontFamily: 'Poppins',
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(true),
-                              child: const Text(
-                                'Yes, I took it',
-                                style: TextStyle(
-                                  fontFamily: 'Poppins',
-                                  color: Color(0xFF1DA1F2),
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                      if (confirmed == true) {
-                        _markTaken(med.id);
-                      }
-                    },
+                    onTap:
+                        isTaken
+                            ? null
+                            : () async {
+                              final confirmed = await showDialog<bool>(
+                                context: context,
+                                builder:
+                                    (context) => AlertDialog(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      title: const Text(
+                                        'Confirm Medication',
+                                        style: TextStyle(
+                                          fontFamily: 'Poppins',
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      content: Text(
+                                        'Have you taken ${med.name} (${med.dosage})?',
+                                        style: const TextStyle(
+                                          fontFamily: 'Poppins',
+                                        ),
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed:
+                                              () => Navigator.of(
+                                                context,
+                                              ).pop(false),
+                                          child: const Text(
+                                            'Cancel',
+                                            style: TextStyle(
+                                              fontFamily: 'Poppins',
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                        ),
+                                        TextButton(
+                                          onPressed:
+                                              () => Navigator.of(
+                                                context,
+                                              ).pop(true),
+                                          child: const Text(
+                                            'Yes, I took it',
+                                            style: TextStyle(
+                                              fontFamily: 'Poppins',
+                                              color: Color(0xFF1DA1F2),
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                              );
+                              if (confirmed == true) {
+                                _markTaken(med.id);
+                              }
+                            },
                     child: Icon(
                       isTaken ? Icons.check_circle : Icons.check_circle_outline,
                       color: isTaken ? const Color(0xFF0D629E) : Colors.white,

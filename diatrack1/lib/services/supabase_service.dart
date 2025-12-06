@@ -778,15 +778,12 @@ class SupabaseService {
         'comorbidities': comorbiditiesCount,
       };
 
-      // Call the risk assessment API via ngrok
+      // Call the risk assessment API via Hugging Face Spaces
       final apiResponse = await http.post(
         Uri.parse(
-          'https://faultily-flighty-joellen.ngrok-free.dev/api/v1/assess-risk',
+          'https://yongnotgio12-diatrack.hf.space/api/v1/surgical-risk/assess',
         ),
-        headers: {
-          'Content-Type': 'application/json',
-          'ngrok-skip-browser-warning': 'true',
-        },
+        headers: {'Content-Type': 'application/json'},
         body: json.encode(requestBody),
       );
 
