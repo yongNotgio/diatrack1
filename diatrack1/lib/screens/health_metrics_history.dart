@@ -485,7 +485,12 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
                           (metric.riskClassification ?? 'UNKNOWN')
                               .toUpperCase(),
                           style: TextStyle(
-                            fontSize: 48,
+                            fontSize:
+                                (metric.riskClassification ?? '')
+                                            .toUpperCase() ==
+                                        'MODERATE'
+                                    ? 28
+                                    : 48,
                             fontWeight: FontWeight.w500,
                             color: getRiskColor(
                               metric.riskClassification ?? 'UNKNOWN',

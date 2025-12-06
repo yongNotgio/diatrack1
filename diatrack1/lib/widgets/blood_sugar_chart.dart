@@ -217,7 +217,7 @@ class _BloodSugarChartState extends State<BloodSugarChart> {
                   minX: 0,
                   maxX: (daysCount - 1).toDouble(),
                   minY: 0,
-                  maxY: 300,
+                  maxY: 500,
                   lineBarsData: [
                     LineChartBarData(
                       spots: spots,

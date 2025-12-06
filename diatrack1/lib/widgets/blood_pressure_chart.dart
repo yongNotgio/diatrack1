@@ -224,7 +224,7 @@ class _BloodPressureChartState extends State<BloodPressureChart> {
               child: BarChart(
                 BarChartData(
                   alignment: BarChartAlignment.spaceAround,
-                  maxY: 200,
+                  maxY: 300,
                   barTouchData: BarTouchData(
                     enabled: true,
                     touchTooltipData: BarTouchTooltipData(
