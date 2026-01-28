@@ -22,6 +22,8 @@ class HealthMetricsHistory extends StatefulWidget {
 class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
   final SupabaseService _supabaseService = SupabaseService();
   late Future<List<HealthMetric>> _metricsFuture;
+  bool _showAllMetrics = false;
+  static const int _initialMetricsLimit = 10;
 
   @override
   void initState() {
@@ -270,9 +272,68 @@ class _HealthMetricsHistoryState extends State<HealthMetricsHistory> {
             ],
           ),
           const SizedBox(height: 12),
-          ...metrics
+          // Limit to first 10 metrics unless "See More" is pressed
+          ...((_showAllMetrics ? metrics : metrics.take(_initialMetricsLimit))
               .map((metric) => _buildMetricSubmissionCard(metric))
-              .toList(),
+              .toList()),
+          // Show "See More" button if there are more than 10 metrics
+          if (metrics.length > _initialMetricsLimit && !_showAllMetrics)
+            Padding(
+              padding: const EdgeInsets.only(top: 8, bottom: 16),
+              child: Center(
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      _showAllMetrics = true;
+                    });
+                  },
+                  icon: const Icon(Icons.expand_more, size: 20),
+                  label: Text(
+                    'See More (${metrics.length - _initialMetricsLimit} more)',
+                    style: const TextStyle(
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0D629E),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(25),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          // Show "Show Less" button when all metrics are shown
+          if (metrics.length > _initialMetricsLimit && _showAllMetrics)
+            Padding(
+              padding: const EdgeInsets.only(top: 8, bottom: 16),
+              child: Center(
+                child: TextButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      _showAllMetrics = false;
+                    });
+                  },
+                  icon: const Icon(Icons.expand_less, size: 20),
+                  label: const Text(
+                    'Show Less',
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  style: TextButton.styleFrom(
+                    foregroundColor: const Color(0xFF0D629E),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
