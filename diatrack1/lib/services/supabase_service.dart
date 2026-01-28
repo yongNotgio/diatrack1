@@ -430,6 +430,28 @@ class SupabaseService {
     return response;
   }
 
+  /// Get doctor's unavailable dates
+  /// Returns a list of DateTime objects representing dates when the doctor is unavailable
+  Future<List<DateTime>> getDoctorUnavailableDates(String doctorId) async {
+    try {
+      final response = await supabase
+          .from('doctor_unavailable_dates')
+          .select('unavailable_date')
+          .eq('doctor_id', doctorId)
+          .gte(
+            'unavailable_date',
+            DateTime.now().toIso8601String().split('T')[0],
+          );
+
+      return List<DateTime>.from(
+        response.map((row) => DateTime.parse(row['unavailable_date'])),
+      );
+    } catch (e) {
+      // Return empty list if there's an error (e.g., table doesn't exist)
+      return [];
+    }
+  }
+
   /// Check if a time slot is available for a doctor
   /// Returns true if the slot is available, false if it's taken
   Future<bool> isTimeSlotAvailable({

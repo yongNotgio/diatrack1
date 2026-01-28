@@ -115,6 +115,10 @@ class _HomeScreenState extends State<HomeScreen> {
             appointmentId: appointmentId,
             currentDateTime: appointmentDateTime,
             doctorName: doctorName,
+            doctorId:
+                doctorId ??
+                widget.patientData['preferred_doctor_id']?.toString() ??
+                '',
             onCancel: () async {
               try {
                 await _supabaseService.cancelAppointment(
@@ -265,6 +269,7 @@ class _HomeScreenState extends State<HomeScreen> {
       builder:
           (dialogContext) => CreateAppointmentDialog(
             doctorName: doctorName,
+            doctorId: doctorId,
             onCreate: (dateTime) async {
               try {
                 await _supabaseService.createAppointment(

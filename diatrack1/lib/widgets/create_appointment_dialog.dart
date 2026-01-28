@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../services/supabase_service.dart';
 
 class CreateAppointmentDialog extends StatefulWidget {
   final String doctorName;
+  final String doctorId;
   final Function(DateTime dateTime) onCreate;
 
   const CreateAppointmentDialog({
     super.key,
     required this.doctorName,
+    required this.doctorId,
     required this.onCreate,
   });
 
@@ -20,10 +23,22 @@ class _CreateAppointmentDialogState extends State<CreateAppointmentDialog> {
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
   bool _isLoading = false;
+  List<DateTime> _unavailableDates = [];
+  final SupabaseService _supabaseService = SupabaseService();
 
   // Check if a date is a weekday (Monday-Friday)
   bool _isWeekday(DateTime date) {
     return date.weekday >= 1 && date.weekday <= 5;
+  }
+
+  // Check if a date is in the unavailable dates list
+  bool _isDateUnavailable(DateTime date) {
+    return _unavailableDates.any(
+      (unavailable) =>
+          unavailable.year == date.year &&
+          unavailable.month == date.month &&
+          unavailable.day == date.day,
+    );
   }
 
   // Get the next available weekday
@@ -37,6 +52,7 @@ class _CreateAppointmentDialogState extends State<CreateAppointmentDialog> {
   @override
   void initState() {
     super.initState();
+    _loadUnavailableDates();
     // Default to next weekday at 9 AM
     final tomorrow = DateTime.now().add(const Duration(days: 1));
     final nextWeekday = _getNextWeekday(tomorrow);
@@ -48,17 +64,46 @@ class _CreateAppointmentDialogState extends State<CreateAppointmentDialog> {
     _selectedTime = const TimeOfDay(hour: 9, minute: 0);
   }
 
+  Future<void> _loadUnavailableDates() async {
+    try {
+      final dates = await _supabaseService.getDoctorUnavailableDates(
+        widget.doctorId,
+      );
+      if (mounted) {
+        setState(() {
+          _unavailableDates = dates;
+          // Recalculate initial date if it's unavailable
+          if (_selectedDate != null && _isDateUnavailable(_selectedDate!)) {
+            _selectedDate = _getNextAvailableWeekday(
+              DateTime.now().add(const Duration(days: 1)),
+            );
+          }
+        });
+      }
+    } catch (e) {
+      // Silently fail - unavailable dates will just not be blocked
+    }
+  }
+
+  // Get the next available weekday that is not unavailable
+  DateTime _getNextAvailableWeekday(DateTime date) {
+    while (!_isWeekday(date) || _isDateUnavailable(date)) {
+      date = date.add(const Duration(days: 1));
+    }
+    return date;
+  }
+
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate:
           _selectedDate ??
-          _getNextWeekday(DateTime.now().add(const Duration(days: 1))),
+          _getNextAvailableWeekday(DateTime.now().add(const Duration(days: 1))),
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
       selectableDayPredicate: (DateTime date) {
-        // Only allow weekdays (Monday-Friday)
-        return _isWeekday(date);
+        // Only allow weekdays (Monday-Friday) that are not unavailable
+        return _isWeekday(date) && !_isDateUnavailable(date);
       },
       builder: (context, child) {
         return Theme(
